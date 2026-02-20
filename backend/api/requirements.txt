@@ -2,7 +2,7 @@ fastapi==0.109.*
 uvicorn[standard]==0.27.*
 pydantic==2.6.*
 pydantic-settings==2.1.*
-google-cloud-bigquery==3.*
+psycopg2-binary==2.9.*
 redis==5.*
 python-dateutil==2.*
 python-dotenv==1.*

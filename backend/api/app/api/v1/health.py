@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from datetime import datetime
 
 from ...schemas.indicators import HealthResponse
-from ...repositories.bigquery_repo import BigQueryRepository
+from ...repositories.postgres_repo import PostgresRepository
 from ...services.cache import CacheService
 from ...core.config import settings
 
@@ -29,15 +29,17 @@ async def health_check():
     except:
         services["redis"] = "unhealthy"
 
-    # Check BigQuery
+    # Check PostgreSQL
     try:
-        bq_repo = BigQueryRepository()
+        db_repo = PostgresRepository()
         # Simple query to test connection
-        query = f"SELECT 1 as test FROM `{settings.GCP_PROJECT_ID}.{settings.BQ_DATASET_CORE}.dim_series` LIMIT 1"
-        bq_repo.client.query(query).result()
-        services["bigquery"] = "healthy"
+        with db_repo._get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                cur.fetchone()
+        services["postgres"] = "healthy"
     except:
-        services["bigquery"] = "unhealthy"
+        services["postgres"] = "unhealthy"
 
     # Overall status
     all_healthy = all(status == "healthy" for status in services.values())

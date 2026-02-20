@@ -12,7 +12,7 @@ from ...schemas.indicators import (
     DashboardOverviewResponse,
     LatestValueResponse
 )
-from ...repositories.bigquery_repo import BigQueryRepository
+from ...repositories.postgres_repo import PostgresRepository
 from ...services.cache import CacheService
 from ...core.config import settings
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Initialize services
-bq_repo = BigQueryRepository()
+db_repo = PostgresRepository()
 cache = CacheService()
 
 
@@ -40,7 +40,7 @@ async def get_indicators():
         return cached
 
     try:
-        indicators = bq_repo.get_indicators()
+        indicators = db_repo.get_indicators()
         cache.set(cache_key, indicators, settings.CACHE_TTL_INDICATORS)
         return indicators
 
@@ -82,7 +82,7 @@ async def get_series(
         return cached
 
     try:
-        series_data = bq_repo.get_series_data(
+        series_data = db_repo.get_series_data(
             indicator_code=indicator_code,
             start_date=start_date,
             end_date=end_date,
@@ -118,7 +118,7 @@ async def get_dashboard_overview():
         return cached
 
     try:
-        snapshots = bq_repo.get_latest_snapshot()
+        snapshots = db_repo.get_latest_snapshot()
 
         response = {
             "indicators": snapshots,
