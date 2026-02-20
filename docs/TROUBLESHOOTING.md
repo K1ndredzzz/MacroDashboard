@@ -1,5 +1,54 @@
 # 部署问题快速修复
 
+## 问题 0: Docker 构建失败 - ingest_fred 目录不存在
+
+### 错误信息
+```
+ERROR: failed to compute cache key: "/ingest_fred": not found
+```
+
+### 原因
+项目目录结构中实际是 `fred` 而不是 `ingest_fred`。
+
+### 解决方案
+已修复！最新代码使用正确的目录结构：
+- `backend/functions/fred/` - FRED 数据提取和转换
+- `backend/functions/collect_data.py` - PostgreSQL 数据采集脚本
+- `backend/functions/common/` - 共享代码
+
+如果遇到此问题，请拉取最新代码：
+```bash
+git pull origin main
+```
+
+## 问题 1: .env 文件 cron 表达式错误
+
+### 错误信息
+```
+.env: line 39: */6: No such file or directory
+```
+
+### 原因
+Cron 表达式中的 `*` 被 bash 解析为通配符。
+
+### 解决方案
+
+编辑 `.env` 文件，给 cron 表达式加引号：
+
+```bash
+# 错误写法
+CRON_SCHEDULE=0 */6 * * *
+
+# 正确写法
+CRON_SCHEDULE="0 */6 * * *"
+```
+
+或者直接使用 `.env.example` 模板（已修复）：
+```bash
+cp .env.example .env
+nano .env  # 填入密码和 API key
+```
+
 ## 问题 1: deploy.sh 权限被拒绝
 
 ### 错误信息

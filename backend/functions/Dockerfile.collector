@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt psycopg2-binary
 
 # Copy application code
 COPY common ./common
-COPY ingest_fred ./ingest_fred
+COPY fred ./fred
+COPY collect_data.py ./collect_data.py
 
 # Copy cron script
 COPY docker/cron-entrypoint.sh /usr/local/bin/

@@ -41,8 +41,10 @@ fi
 echo "✓ Prerequisites check passed"
 echo ""
 
-# Load environment variables
+# Load environment variables safely
+set -a
 source .env
+set +a
 
 # Check required variables
 if [ -z "$POSTGRES_PASSWORD" ]; then
