@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bq query:*)",
+      "Bash(gcloud secrets create:*)",
+      "Bash(gcloud services enable:*)",
+      "Bash(gcloud functions deploy:*)",
+      "Bash(curl:*)",
+      "mcp__ace-tool__search_context",
+      "Bash(test:*)"
+    ]
+  }
+}

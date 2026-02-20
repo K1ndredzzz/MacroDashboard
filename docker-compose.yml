@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Main database (replaces BigQuery)
+  postgres:
+    image: postgres:16-alpine
+    container_name: macro-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: macro_dashboard
+      POSTGRES_USER: macro_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/scripts/postgres:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U macro_user -d macro_dashboard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Cache layer
+  redis:
+    image: redis:7-alpine
+    container_name: macro-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # FastAPI - Backend API
+  api:
+    build:
+      context: ./backend/api
+      dockerfile: Dockerfile
+    container_name: macro-api
+    restart: unless-stopped
+    environment:
+      # Application
+      APP_NAME: "Macro Dashboard API"
+      APP_VERSION: "0.1.0"
+      DEBUG: "false"
+
+      # Database
+      DATABASE_URL: postgresql://macro_user:${POSTGRES_PASSWORD}@postgres:5432/macro_dashboard
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: macro_dashboard
+      POSTGRES_USER: macro_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # Redis
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      # FRED API
+      FRED_API_KEY: ${FRED_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Data Collection Cron Job
+  data-collector:
+    build:
+      context: ./backend/functions
+      dockerfile: Dockerfile.collector
+    container_name: macro-collector
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://macro_user:${POSTGRES_PASSWORD}@postgres:5432/macro_dashboard
+      FRED_API_KEY: ${FRED_API_KEY}
+      CRON_SCHEDULE: "0 */6 * * *"  # Every 6 hours
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/functions:/app
+
+  # Frontend - React application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${FRONTEND_API_URL:-http://localhost:8000}
+    container_name: macro-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: macro-network

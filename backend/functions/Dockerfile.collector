@@ -1,0 +1,26 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install cron and curl
+RUN apt-get update && \
+    apt-get install -y cron curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt psycopg2-binary
+
+# Copy application code
+COPY common ./common
+COPY ingest_fred ./ingest_fred
+
+# Copy cron script
+COPY docker/cron-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/cron-entrypoint.sh
+
+# Create log directory
+RUN mkdir -p /var/log/cron
+
+# Start cron
+CMD ["/usr/local/bin/cron-entrypoint.sh"]

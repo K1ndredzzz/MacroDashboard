@@ -1,0 +1,90 @@
+.dashboard {
+  min-height: 100vh;
+  background: #0f172a;
+}
+
+.dashboard-header {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  padding: 2rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #334155;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: #94a3b8;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.update-time {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.category-section {
+  margin: 2rem 0;
+}
+
+.category-title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #e2e8f0;
+  padding-left: 1rem;
+  border-left: 4px solid #3b82f6;
+}
+
+.indicator-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.indicator-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+}
+
+.indicator-name {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-bottom: 0.75rem;
+}
+
+.indicator-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 0.5rem;
+}
+
+.unit {
+  font-size: 1rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.indicator-change {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.indicator-change.positive {
+  color: #10b981;
+}
+
+.indicator-change.negative {
+  color: #ef4444;
+}
+
+.indicator-date {
+  font-size: 0.75rem;
+  color: #64748b;
+}
