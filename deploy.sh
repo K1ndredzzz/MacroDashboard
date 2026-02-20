@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 echo "=========================================="
@@ -91,7 +91,8 @@ else
 fi
 
 # Check API
-if curl -f http://localhost:8000/api/v1/health > /dev/null 2>&1; then
+API_PORT="${API_PORT:-8888}"
+if curl -f http://localhost:${API_PORT}/api/v1/health > /dev/null 2>&1; then
     echo "✓ API is ready"
 else
     echo "⚠️  API is starting (may take a few more seconds)"
@@ -111,8 +112,8 @@ echo "=========================================="
 echo ""
 echo "Access your application:"
 echo "  Frontend:    http://localhost"
-echo "  API Docs:    http://localhost:8000/api/v1/docs"
-echo "  Health:      http://localhost:8000/api/v1/health"
+echo "  API Docs:    http://localhost:${API_PORT}/api/v1/docs"
+echo "  Health:      http://localhost:${API_PORT}/api/v1/health"
 echo ""
 echo "Useful commands:"
 echo "  View logs:       docker-compose logs -f"
