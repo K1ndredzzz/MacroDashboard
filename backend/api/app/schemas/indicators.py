@@ -2,7 +2,7 @@
 Pydantic schemas for API requests and responses
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -60,6 +60,61 @@ class DashboardOverviewResponse(BaseModel):
     """Dashboard overview response"""
     indicators: List[LatestValueResponse]
     as_of: datetime
+
+
+class YieldCurvePoint(BaseModel):
+    """Single point on yield curve"""
+    maturity: str
+    rate: Optional[Decimal] = None
+
+
+class YieldCurveResponse(BaseModel):
+    """Yield curve response"""
+    observation_date: date
+    points: List[YieldCurvePoint]
+    spread_10y_2y: Optional[Decimal] = None
+    curve_shape: str  # 'normal', 'inverted', 'flat'
+
+
+class CorrelationRow(BaseModel):
+    """Single row in correlation matrix"""
+    indicator: str
+    correlations: Dict[str, Optional[float]]
+
+
+class StrongCorrelation(BaseModel):
+    """Strong correlation pair"""
+    indicator1: str
+    indicator2: str
+    correlation: float
+
+
+class CorrelationMatrixResponse(BaseModel):
+    """Correlation matrix response"""
+    matrix: List[CorrelationRow]
+    strong_correlations: List[StrongCorrelation]
+    start_date: str
+    end_date: str
+    window_days: int
+    observation_count: int
+
+
+class EventResponse(BaseModel):
+    """Event response"""
+    event_id: int
+    event_name: str
+    event_date: date
+    event_type: str
+    description: Optional[str] = None
+    severity: Optional[str] = None
+    created_at: datetime
+
+
+class EventImpactResponse(BaseModel):
+    """Event impact analysis response"""
+    event: EventResponse
+    indicators: List[Dict[str, Any]]
+    analysis_window_days: int
 
 
 class HealthResponse(BaseModel):

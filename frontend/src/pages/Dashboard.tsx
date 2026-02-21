@@ -1,4 +1,8 @@
 import { useDashboardOverview } from '../hooks/useApi';
+import { DateRangePicker } from '../components/DateRangePicker';
+import { YieldCurve } from '../components/YieldCurve';
+import { CorrelationHeatmap } from '../components/CorrelationHeatmap';
+import { EventBacktest } from '../components/EventBacktest';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -48,6 +52,11 @@ export default function Dashboard() {
       </header>
 
       <div className="container">
+        <DateRangePicker />
+        <YieldCurve />
+        <CorrelationHeatmap />
+        <EventBacktest />
+
         {groupedIndicators && Object.entries(groupedIndicators).map(([category, indicators]) => (
           <section key={category} className="category-section">
             <h2 className="category-title">{getCategoryName(category)}</h2>
