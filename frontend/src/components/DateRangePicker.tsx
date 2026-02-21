@@ -97,14 +97,17 @@ export const DateRangePicker: React.FC = () => {
           padding: 0.5rem 1rem;
           border: 1px solid #d1d5db;
           background: white;
+          color: #374151;
           border-radius: 6px;
           cursor: pointer;
           font-size: 0.875rem;
+          font-weight: 500;
           transition: all 0.2s;
         }
 
         .preset-btn:hover {
           background: #f3f4f6;
+          border-color: #9ca3af;
         }
 
         .preset-btn.active {

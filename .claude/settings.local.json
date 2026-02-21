@@ -19,7 +19,10 @@
       "Bash(npm run build)",
       "Bash(python:*)",
       "Bash(npm install recharts)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "mcp__contextweaver__codebase-retrieval",
+      "Bash(xargs ls:*)",
+      "Bash(C:/Users/K1ndred/.claude/bin/codeagent-wrapper.exe --backend:*)"
     ]
   }
 }

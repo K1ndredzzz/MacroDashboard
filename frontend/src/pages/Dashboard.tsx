@@ -3,6 +3,7 @@ import { DateRangePicker } from '../components/DateRangePicker';
 import { YieldCurve } from '../components/YieldCurve';
 import { CorrelationHeatmap } from '../components/CorrelationHeatmap';
 import { EventBacktest } from '../components/EventBacktest';
+import { ShockSimulator } from '../components/ShockSimulator';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -53,6 +54,7 @@ export default function Dashboard() {
 
       <div className="container">
         <DateRangePicker />
+        <ShockSimulator />
         <YieldCurve />
         <CorrelationHeatmap />
         <EventBacktest />

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .core.config import settings
-from .api.v1 import indicators, health
+from .api.v1 import indicators, health, simulation
 
 # Configure logging
 logging.basicConfig(
@@ -62,6 +62,12 @@ app.include_router(
     indicators.router,
     prefix=settings.API_V1_PREFIX,
     tags=["indicators"]
+)
+
+app.include_router(
+    simulation.router,
+    prefix=f"{settings.API_V1_PREFIX}/simulation",
+    tags=["simulation"]
 )
 
 
