@@ -2,181 +2,276 @@
 
 ## 项目状态
 
-**当前阶段**: Phase 2 完成 - 数据采集和 API 后端已全部部署到生产环境
+**当前阶段**: ✅ MVP 完成 - 全栈应用已部署并运行
 
 **已完成**:
 - ✅ 项目结构创建
-- ✅ BigQuery 数据模型设计（6 张核心表 + DDL 脚本）
-- ✅ BigQuery 初始化完成（14 个指标已入库）
+- ✅ PostgreSQL 数据模型设计（替代 BigQuery）
+- ✅ 数据库初始化（14 个指标）
 - ✅ 核心指标数据字典（14 个指标）
 - ✅ Docker Compose 配置
 - ✅ 环境配置模板
-- ✅ Cloud Functions 公共模块（HTTP 客户端、BigQuery 加载器）
-- ✅ FRED 数据采集 Function（完整实现）
-- ✅ FRED Function 部署到 GCP（Gen2, 512MB, 540s timeout）
-- ✅ Cloud Scheduler 配置（每日 8:00 AM UTC 自动执行）
-- ✅ Secret Manager 集成（FRED_API_KEY）
+- ✅ FRED 数据采集（Cron Job 定时执行）
 - ✅ FastAPI 后端完整实现
-  - ✅ BigQuery Repository 层
-  - ✅ Cache Service 层（Redis 可选）
+  - ✅ PostgreSQL Repository 层
+  - ✅ Redis Cache 层
   - ✅ 核心 API 端点（indicators, series, dashboard/overview）
   - ✅ 健康检查端点
   - ✅ API 文档（Swagger UI）
-- ✅ 本地测试通过（所有端点验证成功）
-- ✅ FastAPI 部署到 GCP Cloud Run
-  - ✅ Docker 镜像构建并推送到 GCR
-  - ✅ Cloud Run 服务配置（512Mi, 1 CPU, 300s timeout）
-  - ✅ 生产环境测试通过
+  - ✅ CORS 配置
+- ✅ React 前端完整实现
+  - ✅ TypeScript + Vite
+  - ✅ Recharts 数据可视化
+  - ✅ API 客户端集成
+  - ✅ Dashboard 页面
+  - ✅ Nginx 反向代理配置
+- ✅ Docker 镜像构建并推送到 DockerHub
+- ✅ 本地部署测试通过
+- ✅ 服务器部署测试通过
+- ✅ 域名反向代理配置
 
-**进行中**:
-- 🔄 React 前端开发（待启动）
+## 当前架构
 
-**待完成**:
-- ⏳ World Bank 数据采集 Function
-- ⏳ React 前端初始化
-- ⏳ 前端与后端集成
+### 技术栈
+- **数据采集**: Docker Cron Job + Python 3.11
+- **数据存储**: PostgreSQL 16（core, mart, ops schemas）
+- **API 层**: FastAPI + Uvicorn
+- **缓存**: Redis 7
+- **前端**: React 18 + TypeScript + Vite + Recharts
+- **Web 服务器**: Nginx (反向代理 + SPA 路由)
+- **容器化**: Docker + Docker Compose
+- **镜像仓库**: DockerHub
 
-## 10-14 天实施路线图
+### 部署架构
+```
+用户浏览器
+    ↓
+域名 (macro-dashboard.fuzhouxing.cn)
+    ↓
+1Panel Nginx (反向代理)
+    ↓
+Docker 网络 (macro-network)
+    ├── Frontend (Nginx) :8021
+    │   └── /api/* → API :8000
+    ├── API (FastAPI) :8020
+    │   ├── → PostgreSQL :5433
+    │   └── → Redis :6380
+    ├── Data Collector (Cron)
+    │   └── → PostgreSQL :5433
+    ├── PostgreSQL :5433
+    └── Redis :6380
+```
 
-### 阶段 1: 基础设施（Day 1-2）✅
+### 端口配置
+| 服务 | 内部端口 | 外部端口 | 说明 |
+|------|---------|---------|------|
+| PostgreSQL | 5432 | 5433 | 避免本地冲突 |
+| Redis | 6379 | 6380 | 避免本地冲突 |
+| API | 8000 | 8020 | 后端 API |
+| Frontend | 80 | 8021 | 前端界面 |
 
-**后端**:
-- [x] 创建项目目录结构
-- [x] BigQuery datasets 和表结构 DDL
-- [x] 核心指标数据字典
-- [x] 环境配置模板
+## 优化方向
 
-**前端**:
-- [ ] 初始化 React 项目（Vite + TypeScript）
-- [ ] 安装依赖（echarts、antd、react-query）
+### 1. 性能优化 ⭐⭐⭐
 
-### 阶段 2: 数据采集（Day 3-6）✅
+**数据库优化**
+- [ ] 添加数据库连接池监控
+- [ ] 实现查询结果缓存策略
+- [ ] 优化慢查询（添加复合索引）
+- [ ] 实现数据分区（按年份）
 
-**后端**:
-- [x] 实现 Cloud Functions 公共模块
-  - [x] HTTP 客户端（重试、退避）
-  - [x] BigQuery 加载器
-  - [x] 配置管理
-- [x] 实现 FRED 采集 Function
-  - [x] Extractor（API 调用）
-  - [x] Transformer（数据标准化）
-  - [x] Loader（写入 BigQuery）
-  - [x] 主函数（HTTP 触发器）
-- [x] 部署到 GCP Cloud Functions Gen2
-  - [x] Secret Manager 集成
-  - [x] 权限配置
-  - [x] 环境变量设置
-- [x] 配置 Cloud Scheduler（每日 8:00 AM UTC）
-- [x] 生产环境测试（12/12 系列成功处理）
-- [ ] 实现 World Bank 采集 Function
+**API 优化**
+- [ ] 实现 API 响应压缩（Gzip）
+- [ ] 添加 ETag 支持
+- [ ] 实现 GraphQL 端点（可选）
+- [ ] API 限流（Rate Limiting）
 
-**前端**:
-- [ ] 实现基础布局组件
-- [ ] 开发图表组件骨架
+**前端优化**
+- [ ] 实现代码分割（Code Splitting）
+- [ ] 添加 Service Worker（PWA）
+- [ ] 图表懒加载
+- [ ] 实现虚拟滚动（大数据集）
 
-### 阶段 3: API 与集成（Day 7-10）✅
+### 2. 监控与告警 ⭐⭐⭐
 
-**后端**:
-- [x] FastAPI 项目初始化
-- [x] 实现 Repository 层（BigQuery）
-- [x] 实现 Cache 层（Redis 可选）
-- [x] 核心 API 端点:
-  - [x] GET /api/v1/health
-  - [x] GET /api/v1/indicators
-  - [x] GET /api/v1/indicators/{code}/series
-  - [x] GET /api/v1/dashboard/overview
-- [x] API 文档（Swagger UI）
-- [x] 本地测试通过
-- [x] 部署到 GCP Cloud Run
-  - [x] Dockerfile 优化（非 root 用户）
-  - [x] 构建并推送到 GCR
-  - [x] Cloud Run 服务配置
-  - [x] 生产环境验证
+**应用监控**
+- [ ] 集成 Prometheus + Grafana
+  - API 响应时间
+  - 数据库连接数
+  - Redis 命中率
+  - 容器资源使用
+- [ ] 实现健康检查仪表板
+- [ ] 添加日志聚合（ELK Stack 或 Loki）
 
-**前端**:
-- [ ] API 客户端集成
-- [ ] 实现自定义 Hooks（useIndicators、useSeries）
-- [ ] Dashboard 页面组装
+**数据质量监控**
+- [ ] 数据采集成功率监控
+- [ ] 数据完整性检查
+- [ ] 异常值检测
+- [ ] 数据延迟告警
 
-### 阶段 4: 部署与优化（Day 11-14）
+**告警通知**
+- [ ] 集成 Webhook 通知（企业微信/钉钉/Slack）
+- [ ] 数据采集失败告警
+- [ ] API 服务异常告警
+- [ ] 磁盘空间告警
 
-**后端**:
-- [ ] Docker Compose 集成测试
-- [ ] 性能优化与压测
-- [ ] 安全检查（输入校验、CORS、Secrets）
-- [ ] 数据回填脚本
+### 3. 安全加固 ⭐⭐
 
-**前端**:
-- [ ] 性能优化（useMemo、React.memo）
-- [ ] 响应式适配
-- [ ] 错误边界处理
-- [ ] Docker 构建
+**认证与授权**
+- [ ] 实现 JWT 认证
+- [ ] API Key 管理
+- [ ] 用户角色权限（RBAC）
+- [ ] OAuth2 集成（可选）
 
-### 短期目标（本周）
+**安全配置**
+- [ ] 启用 HTTPS（Let's Encrypt）
+- [ ] 实现 API 限流
+- [ ] SQL 注入防护审计
+- [ ] 敏感数据加密
 
-1. ✅ 完成 FRED 数据采集 Cloud Function
-2. ✅ 部署第一个 Cloud Function 并测试
-3. ✅ 配置 Cloud Scheduler 自动化
-4. ✅ 完成 FastAPI 项目并本地测试
-5. ✅ 部署 FastAPI 到 GCP Cloud Run
-6. 🔄 初始化 React 项目结构
+**备份策略**
+- [ ] 自动化数据库备份（每日）
+- [ ] 备份文件加密
+- [ ] 异地备份
+- [ ] 备份恢复测试
 
-### 中期目标（2 周内）
+### 4. 功能扩展 ⭐⭐
 
-1. ✅ 完成 FRED 数据采集管道
-2. ✅ 完成核心 API 端点
-3. ✅ API 后端部署到生产环境
-4. 🔄 完成基础仪表盘前端
-5. 🔄 Docker Compose 一键部署
-6. ⏳ 完成 World Bank 数据采集管道
+**数据源扩展**
+- [ ] World Bank 数据采集
+- [ ] IMF 数据集成
+- [ ] Yahoo Finance 股票数据
+- [ ] 加密货币数据（CoinGecko）
 
-## 验收标准
+**可视化增强**
+- [ ] 添加更多图表类型（热力图、散点图）
+- [ ] 实现自定义仪表板
+- [ ] 数据导出功能（CSV/Excel）
+- [ ] 图表分享功能
 
-### MVP 完成定义（DoD）
+**分析功能**
+- [ ] 相关性分析
+- [ ] 趋势预测（简单移动平均）
+- [ ] 事件标注（重要经济事件）
+- [ ] 指标对比功能
 
-1. ✅ FRED 自动采集稳定运行（已部署 Cloud Scheduler）
-2. ✅ BigQuery 数据完整，支持按指标/日期查询
-3. ✅ API 端点完整实现并通过测试
-4. ⏳ 前端展示至少 3 类核心指标图表
-5. ⏳ Docker Compose 可一键启动并通过健康检查
-6. ⏳ API 在缓存命中场景 P95 < 500ms（待压测）
-7. ✅ 任务日志与数据质量日志可用于故障定位
+### 5. 运维自动化 ⭐
 
-## 技术债务与优化
+**CI/CD**
+- [ ] GitHub Actions 自动构建
+- [ ] 自动化测试（单元测试 + 集成测试）
+- [ ] 自动部署到服务器
+- [ ] 镜像版本管理
+
+**容器编排**
+- [ ] 迁移到 Kubernetes（可选）
+- [ ] 实现滚动更新
+- [ ] 自动扩缩容
+- [ ] 健康检查与自愈
+
+**文档完善**
+- [ ] API 文档完善（示例代码）
+- [ ] 架构图更新
+- [ ] 运维手册
+- [ ] 故障排查手册
+
+### 6. 用户体验 ⭐
+
+**界面优化**
+- [ ] 深色模式
+- [ ] 多语言支持（中英文）
+- [ ] 响应式设计优化
+- [ ] 加载动画优化
+
+**交互优化**
+- [ ] 实现数据筛选器
+- [ ] 时间范围选择器
+- [ ] 图表交互增强（缩放、拖拽）
+- [ ] 键盘快捷键
+
+**移动端**
+- [ ] 移动端适配
+- [ ] 触摸手势支持
+- [ ] 移动端专属布局
+
+## 优先级建议
+
+### 高优先级（1-2 周）⭐⭐⭐
+1. **监控与告警**：确保生产环境稳定性
+2. **HTTPS 配置**：安全基础
+3. **自动化备份**：数据安全
+4. **性能监控**：了解系统瓶颈
+
+### 中优先级（1 个月）⭐⭐
+1. **API 限流**：防止滥用
+2. **数据库优化**：提升查询性能
+3. **前端优化**：提升用户体验
+4. **CI/CD**：提升开发效率
+
+### 低优先级（长期）⭐
+1. **新数据源**：扩展数据覆盖
+2. **高级分析功能**：增强分析能力
+3. **Kubernetes 迁移**：大规模部署
+4. **移动端应用**：扩展用户群
+
+## 技术债务
 
 ### 已知限制
-- GOLDAMGBD228NLBM（黄金价格）因 LBMA 版权限制已从 FRED 采集中移除
-- PostgreSQL 热数据层暂未实现（使用 BigQuery 直接查询）
-- Redis 缓存为可选配置（默认关闭）
-- World Bank 数据采集待实现
+- ~~GOLDAMGBD228NLBM（黄金价格）因 LBMA 版权限制已从 FRED 采集中移除~~ ✅ 已解决
+- 缺少监控和告警系统
+- 未实现用户认证
+- 未启用 HTTPS
+- 缺少自动化测试
 
-### 当前技术栈
-- **数据采集**: GCP Cloud Functions Gen2 + Python 3.11
-- **数据存储**: BigQuery（macro_raw, macro_core, macro_mart, macro_ops）
-- **API 层**: FastAPI + Uvicorn（部署在 Cloud Run）
-- **缓存**: Redis（可选）
-- **认证**: Secret Manager
-- **调度**: Cloud Scheduler
-- **容器**: Docker + GCR
-- **前端**: React + TypeScript（待实现）
+### 待优化项
+- 数据库查询性能（添加更多索引）
+- API 响应时间（P95 目标 < 500ms）
+- 前端首屏加载时间（目标 < 2s）
+- 容器镜像大小（前端 ~50MB，可优化）
 
-### 生产环境 URL
-- **FRED 数据采集**: https://us-central1-gen-lang-client-0815236933.cloudfunctions.net/ingest-fred
-- **API 服务**: https://macro-dashboard-api-771720899914.us-central1.run.app
-- **API 文档**: https://macro-dashboard-api-771720899914.us-central1.run.app/api/v1/docs
+## 生产环境信息
 
-### 后续优化方向
-1. 引入 PostgreSQL 热数据层（Phase 2B）
-2. 实现事件冲击实验室（Phase 4）
-3. 集成 n8n 自动化运维（Phase 5）
-4. 添加更多数据源（IMF、ECB、Yahoo Finance）
-5. 实现用户认证和权限管理
-6. 实现 World Bank 数据采集
-7. 启用 Redis 缓存优化性能
+### 部署地址
+- **前端**: https://macro-dashboard.fuzhouxing.cn
+- **API 文档**: http://your-server-ip:8020/api/v1/docs
+- **健康检查**: http://your-server-ip:8020/api/v1/health
+
+### 镜像仓库
+- **API**: fuzhouxing/macro-dashboard-api:latest
+- **Frontend**: fuzhouxing/macro-dashboard-frontend:latest
+- **Collector**: fuzhouxing/macro-dashboard-collector:latest
+
+### 数据采集
+- **频率**: 每 6 小时（可配置）
+- **数据源**: FRED API
+- **指标数量**: 14 个核心指标
+- **数据范围**: 最近 1 年
+
+## 成本估算
+
+### 当前成本（Azure 2核4G）
+- **服务器**: ¥200-300/月
+- **域名**: ¥50/年
+- **总计**: ~¥250/月
+
+### 优化后成本（添加监控）
+- **服务器**: ¥200-300/月
+- **域名**: ¥50/年
+- **监控服务**: ¥0（自建 Prometheus）
+- **总计**: ~¥250/月
 
 ## 参考文档
 
-- [后端架构设计](docs/backend_architecture_phase1_2A.md) - Codex 生成
-- [数据字典](docs/data_dictionary.md)
-- [项目规划](项目规划.md)
-- [背景说明](background.md)
+- [部署和维护指南](DEPLOYMENT.md)
+- [故障排查指南](TROUBLESHOOTING.md)
+- [数据字典](data_dictionary.md)
+- [README](../README.md)
+
+## 更新日志
+
+### 2026-02-21
+- ✅ 完成 MVP 部署
+- ✅ 本地和服务器环境测试通过
+- ✅ 域名反向代理配置完成
+- ✅ 文档更新完成
+- 📝 制定优化计划

@@ -26,18 +26,26 @@ app = FastAPI(
 )
 
 # Configure CORS
+# Allow all origins in development, or specify allowed origins
+import os
+allowed_origins = [
+    "http://localhost",
+    "http://localhost:80",
+    "http://localhost:3000",
+    "http://localhost:5173",  # Vite dev server
+    "http://localhost:8080",
+    "http://localhost:8020",  # API port
+    "http://localhost:8021",  # Frontend port
+]
+
+# Add custom origins from environment variable
+custom_origins = os.getenv("CORS_ORIGINS", "")
+if custom_origins:
+    allowed_origins.extend(custom_origins.split(","))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost",
-        "http://localhost:80",
-        "http://localhost:3000",
-        "http://localhost:5173",  # Vite dev server
-        "http://localhost:8080",
-        "http://localhost:8020",  # API port
-        "http://localhost:8021",  # Frontend port
-        "https://macro-dashboard-api-771720899914.us-central1.run.app"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
