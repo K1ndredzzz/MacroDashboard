@@ -22,7 +22,9 @@
       "Bash(grep:*)",
       "mcp__contextweaver__codebase-retrieval",
       "Bash(xargs ls:*)",
-      "Bash(C:/Users/K1ndred/.claude/bin/codeagent-wrapper.exe --backend:*)"
+      "Bash(C:/Users/K1ndred/.claude/bin/codeagent-wrapper.exe --backend:*)",
+      "Bash(bash \"/d/Code_new/MacroDashboard/push-v2.0.0.sh\")",
+      "Bash(bash d:/Code_new/MacroDashboard/diagnose-events.sh)"
     ]
   }
 }
