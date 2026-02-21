@@ -29,9 +29,13 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost",
+        "http://localhost:80",
         "http://localhost:3000",
         "http://localhost:5173",  # Vite dev server
         "http://localhost:8080",
+        "http://localhost:8020",  # API port
+        "http://localhost:8021",  # Frontend port
         "https://macro-dashboard-api-771720899914.us-central1.run.app"
     ],
     allow_credentials=True,

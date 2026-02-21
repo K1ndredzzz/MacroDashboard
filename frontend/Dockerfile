@@ -3,6 +3,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Use Taobao npm mirror for faster downloads in China
+RUN npm config set registry https://registry.npmmirror.com
+
 # Copy package files
 COPY package*.json ./
 

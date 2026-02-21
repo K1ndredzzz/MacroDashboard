@@ -31,9 +31,19 @@ class FREDTransformer:
             "indicator_code": "US30Y",
             "country_code": "US"
         },
+        "FEDFUNDS": {
+            "series_uid": "fred:FEDFUNDS:US:M",
+            "indicator_code": "FEDFUNDS",
+            "country_code": "US"
+        },
         "DEXUSEU": {
             "series_uid": "fred:DEXUSEU:US:D",
             "indicator_code": "EURUSD",
+            "country_code": "US"
+        },
+        "DEXCHUS": {
+            "series_uid": "fred:DEXCHUS:US:D",
+            "indicator_code": "USDCNY",
             "country_code": "US"
         },
         "DEXJPUS": {
@@ -79,6 +89,16 @@ class FREDTransformer:
         "PAYEMS": {
             "series_uid": "fred:PAYEMS:US:M",
             "indicator_code": "PAYEMS_US",
+            "country_code": "US"
+        },
+        "CIVPART": {
+            "series_uid": "fred:CIVPART:US:M",
+            "indicator_code": "CIVPART_US",
+            "country_code": "US"
+        },
+        "AHETPI": {
+            "series_uid": "fred:AHETPI:US:M",
+            "indicator_code": "AHETPI_US",
             "country_code": "US"
         }
     }
@@ -196,8 +216,10 @@ class FREDTransformer:
             "DGS2": (-5, 20),
             "DGS10": (-5, 20),
             "DGS30": (-5, 20),
+            "FEDFUNDS": (-5, 20),
             # FX rates: must be positive
             "DEXUSEU": (0, float('inf')),
+            "DEXCHUS": (0, float('inf')),
             "DEXJPUS": (0, float('inf')),
             "DEXUSUK": (0, float('inf')),
             # Commodities: must be positive
@@ -209,8 +231,12 @@ class FREDTransformer:
             "PPIACO": (0, 1000),
             # Unemployment: 0% to 30%
             "UNRATE": (0, 30),
-            # Payrolls: must be positive
-            "PAYEMS": (0, 200000)
+            # Payrolls: must be positive (in thousands)
+            "PAYEMS": (0, 200000),
+            # Labor force participation: 0% to 100%
+            "CIVPART": (0, 100),
+            # Average hourly earnings: must be positive
+            "AHETPI": (0, 200)
         }
 
         if series_id in ranges:

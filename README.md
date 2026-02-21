@@ -1,96 +1,128 @@
-# Macro Dashboard
+# Macro Economic Dashboard
 
-宏观经济实时仪表盘 - 全栈数据可视化平台
+一个基于 FRED API 的宏观经济数据仪表板，提供实时经济指标监控和可视化。
 
-## 项目概述
+## 特性
 
-自动采集、存储和可视化宏观经济数据的完整解决方案。支持 GCP 云端部署或自托管服务器部署。
+- 📊 **实时数据**：自动从 FRED API 采集最新经济数据
+- 🔄 **自动更新**：每 6 小时自动更新数据（可配置）
+- 💾 **本地存储**：使用 PostgreSQL 本地存储，无需依赖云服务
+- 🚀 **容器化部署**：Docker Compose 一键部署
+- 📈 **数据可视化**：直观的图表展示经济指标趋势
+- ⚡ **高性能**：Redis 缓存加速数据访问
 
-### 核心功能
-- 自动采集宏观经济数据（FRED API）
-- PostgreSQL 数据仓库存储历史数据
-- FastAPI 后端 API 服务
-- React + TypeScript 可视化仪表盘
-- Docker Compose 一键部署
-- 支持 GCP 或自托管服务器
+## 监控指标
 
-### 核心指标
-- **利率**: 美债利率曲线（2Y/10Y）、联邦基金利率
-- **外汇**: EURUSD、USDCNY、USDJPY
-- **大宗商品**: WTI 原油、黄金
-- **通胀**: CPI、核心 CPI
-- **就业**: 失业率、非农就业、劳动参与率
+### 利率 (Rates)
+- US 10-Year Treasury Yield (US10Y)
+- US 2-Year Treasury Yield (US2Y)
+- Federal Funds Rate (FEDFUNDS)
 
-## 🚀 快速部署
+### 外汇 (FX)
+- EUR/USD Exchange Rate (EURUSD)
+- USD/CNY Exchange Rate (USDCNY)
+- USD/JPY Exchange Rate (USDJPY)
 
-### 方式 1: 一键部署脚本（推荐）
+### 大宗商品 (Commodity)
+- WTI Crude Oil Price (WTI)
+- Gold Price (GOLD)
 
+### 通胀 (Inflation)
+- US CPI All Items (CPI_US)
+- US Core CPI (CPI_CORE_US)
+
+### 劳动力市场 (Labor)
+- US Unemployment Rate (UNRATE_US)
+- US Nonfarm Payrolls (PAYEMS_US)
+- US Labor Force Participation Rate (CIVPART_US)
+- US Average Hourly Earnings (AHETPI_US)
+
+## 快速开始
+
+### 前置要求
+
+- Docker 和 Docker Compose
+- FRED API Key（免费申请：https://fred.stlouisfed.org/docs/api/api_key.html）
+
+### 部署步骤
+
+1. **克隆项目**
 ```bash
-# 1. 克隆项目
-git clone https://github.com/your-username/MacroDashboard.git
+git clone https://github.com/K1ndredzzz/MacroDashboard.git
 cd MacroDashboard
-
-# 2. 配置环境变量
-cp .env.example .env
-nano .env  # 填入 POSTGRES_PASSWORD 和 FRED_API_KEY
-
-# 3. 运行部署脚本
-./deploy.sh
 ```
 
-### 方式 2: 手动部署
-
+2. **配置环境变量**
 ```bash
-# 配置环境变量
 cp .env.example .env
 nano .env
+```
 
-# 启动所有服务
+填入必填项：
+```bash
+POSTGRES_PASSWORD=your_secure_password
+FRED_API_KEY=your_fred_api_key
+```
+
+3. **启动服务**
+```bash
 docker-compose up -d
-
-# 查看日志
-docker-compose logs -f
 ```
 
-### 访问应用
+4. **访问应用**
+- 前端界面：http://localhost:8021
+- API 文档：http://localhost:8020/api/v1/docs
+- 健康检查：http://localhost:8020/api/v1/health
 
-- **前端界面**: http://localhost
-- **API 文档**: http://localhost:8000/api/v1/docs
-- **健康检查**: http://localhost:8000/api/v1/health
-
-## 技术架构
-
-### 完整技术栈
-- **前端**: React 18 + TypeScript + Vite + TanStack Query
-- **后端**: FastAPI + Python 3.11 + Uvicorn
-- **数据库**: PostgreSQL 16
-- **缓存**: Redis 7
-- **容器化**: Docker + Docker Compose
-- **数据源**: FRED API
-
-### 系统架构
+## 架构
 
 ```
-┌─────────────┐
-│   Frontend  │  React + Nginx
-│    :80      │
-└──────┬──────┘
-       │
-┌──────▼──────┐
-│     API     │  FastAPI
-│   :8000     │
-└──────┬──────┘
-       │
-┌──────▼──────┐     ┌──────────┐
-│ PostgreSQL  │◄────┤ Cron Job │  数据采集
-│   :5432     │     └──────────┘
-└──────┬──────┘
-       │
-┌──────▼──────┐
-│    Redis    │  缓存
-│   :6379     │
-└─────────────┘
+┌─────────────────┐
+│   Frontend      │  React + TypeScript + Vite
+│   (Port 8021)   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   API Server    │  FastAPI + Python 3.11
+│   (Port 8020)   │
+└────┬───────┬────┘
+     │       │
+     ▼       ▼
+┌─────────┐ ┌──────────┐
+│ Redis   │ │PostgreSQL│
+│(Port    │ │(Port     │
+│ 6380)   │ │ 5433)    │
+└─────────┘ └──────────┘
+     ▲           ▲
+     │           │
+┌────┴───────────┴────┐
+│  Data Collector     │  Cron Job (每 6 小时)
+│  FRED API → DB      │
+└─────────────────────┘
 ```
+
+## 技术栈
+
+### 后端
+- **FastAPI**: 高性能 Python Web 框架
+- **PostgreSQL 16**: 关系型数据库
+- **Redis 7**: 缓存层
+- **psycopg2**: PostgreSQL 驱动
+- **FRED API**: 经济数据源
+
+### 前端
+- **React 18**: UI 框架
+- **TypeScript**: 类型安全
+- **Vite**: 构建工具
+- **Recharts**: 数据可视化
+- **Axios**: HTTP 客户端
+
+### 基础设施
+- **Docker**: 容器化
+- **Docker Compose**: 服务编排
+- **Nginx**: 前端服务器
+- **Cron**: 定时任务
 
 ## 项目结构
 
@@ -99,132 +131,167 @@ MacroDashboard/
 ├── backend/
 │   ├── api/                    # FastAPI 应用
 │   │   ├── app/
-│   │   │   ├── api/v1/        # API 端点
-│   │   │   ├── core/          # 配置
+│   │   │   ├── api/v1/        # API 路由
+│   │   │   ├── core/          # 核心配置
 │   │   │   ├── repositories/  # 数据访问层
-│   │   │   ├── schemas/       # Pydantic 模型
-│   │   │   └── services/      # 业务服务
+│   │   │   └── main.py        # 应用入口
 │   │   ├── Dockerfile
 │   │   └── requirements.txt
 │   ├── functions/              # 数据采集
-│   │   ├── ingest_fred/       # FRED 数据采集
+│   │   ├── fred/              # FRED 数据提取和转换
 │   │   ├── common/            # 共享代码
+│   │   ├── collect_data.py    # 采集脚本
 │   │   └── Dockerfile.collector
 │   └── scripts/
-│       ├── postgres/          # PostgreSQL 初始化
-│       └── migration/         # BigQuery 迁移工具
-├── frontend/                   # React 应用
+│       └── postgres/          # 数据库初始化脚本
+│           └── 01_init_schema.sql
+├── frontend/
 │   ├── src/
-│   │   ├── pages/            # 页面组件
-│   │   ├── hooks/            # React Hooks
-│   │   ├── services/         # API 服务
-│   │   └── types/            # TypeScript 类型
+│   │   ├── components/        # React 组件
+│   │   ├── services/          # API 服务
+│   │   ├── types/             # TypeScript 类型
+│   │   └── App.tsx
 │   ├── Dockerfile
-│   └── nginx.conf
-├── docs/                       # 文档
-│   ├── azure_deployment_guide.md
-│   └── implementation_plan.md
-├── docker-compose.yml          # Docker Compose 配置
+│   ├── nginx.conf
+│   └── package.json
+├── docs/
+│   ├── DEPLOYMENT.md          # 部署和维护指南
+│   └── TROUBLESHOOTING.md     # 故障排查指南
+├── docker-compose.yml         # 服务编排配置
 ├── .env.example               # 环境变量模板
-├── deploy.sh                  # 一键部署脚本
-├── DEPLOYMENT.md              # 部署说明
 └── README.md
 ```
 
-## 环境变量配置
+## 维护指南
 
-必填项：
-
+### 查看服务状态
 ```bash
-POSTGRES_PASSWORD=your_secure_password
-FRED_API_KEY=your_fred_api_key  # 从 https://fred.stlouisfed.org 获取
-```
-
-可选项：
-
-```bash
-CRON_SCHEDULE=0 */6 * * *  # 数据采集频率（默认每6小时）
-FRONTEND_API_URL=http://your-server-ip:8000  # 前端 API 地址
-```
-
-## 数据迁移
-
-如果您已在 GCP BigQuery 上有数据，可以迁移到 PostgreSQL：
-
-```bash
-# 1. 导出 BigQuery 数据（本地执行）
-cd backend/scripts/migration
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/gcp-key.json
-python export_from_bigquery.py
-
-# 2. 上传到服务器
-scp -r migration_data user@server:/path/to/MacroDashboard/backend/scripts/migration/
-
-# 3. 导入到 PostgreSQL（服务器执行）
-cd backend/scripts/migration
-export POSTGRES_PASSWORD=your_password
-python import_to_postgres.py
-```
-
-## 常用命令
-
-```bash
-# 查看服务状态
 docker-compose ps
-
-# 查看日志
-docker-compose logs -f [service_name]
-
-# 重启服务
-docker-compose restart
-
-# 停止服务
-docker-compose down
-
-# 备份数据库
-docker exec macro-postgres pg_dump -U macro_user macro_dashboard > backup.sql
-
-# 恢复数据库
-docker exec -i macro-postgres psql -U macro_user macro_dashboard < backup.sql
-
-# 手动触发数据采集
-docker exec macro-collector python -m ingest_fred.main
+docker-compose logs -f
 ```
 
-## 部署选项
+### 查看数据采集日志
+```bash
+docker-compose logs data-collector --tail 100
+```
 
-### 选项 1: 自托管服务器（推荐）
-- **成本**: ¥200-300/月（Azure 2核4G）
-- **优势**: 完全控制、无供应商锁定
-- **文档**: [Azure 部署指南](docs/azure_deployment_guide.md)
+### 手动触发数据采集
+```bash
+docker exec macro-collector python /app/collect_data.py
+```
 
-### 选项 2: GCP Cloud Run
-- **成本**: ~$20/月
-- **优势**: 自动扩展、托管服务
-- **文档**: [GCP 部署指南](docs/deployment_summary.md)
+### 备份数据库
+```bash
+docker exec macro-postgres pg_dump -U macro_user macro_dashboard > backup.sql
+```
 
-## 性能指标
+### 更新服务
+```bash
+git pull origin main
+docker-compose pull
+docker-compose up -d
+```
 
-- **API 响应时间**: < 500ms (P95)
-- **缓存命中率**: > 80%
-- **数据更新频率**: 每 6 小时
-- **支持并发**: 100+ 用户
+详细维护指南请参考 [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
 
-## 开发计划
+## 故障排查
 
-详见 [实施计划](docs/implementation_plan.md)
+遇到问题？查看 [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) 获取详细的故障排查指南。
 
-## 相关文档
+常见问题：
+- 端口冲突
+- 数据库未初始化
+- CORS 错误
+- 数据采集失败
 
-- [完整部署指南](DEPLOYMENT.md)
-- [Azure 部署指南](docs/azure_deployment_guide.md)
-- [API 文档](backend/api/README.md)
-- [前端文档](frontend/README.md)
+## 配置说明
+
+### 环境变量
+
+| 变量名 | 说明 | 默认值 | 必填 |
+|--------|------|--------|------|
+| `POSTGRES_PASSWORD` | PostgreSQL 密码 | - | ✓ |
+| `FRED_API_KEY` | FRED API 密钥 | - | ✓ |
+| `CRON_SCHEDULE` | 数据采集频率 | `"0 */6 * * *"` | ✗ |
+
+### 端口配置
+
+| 服务 | 内部端口 | 外部端口 | 说明 |
+|------|---------|---------|------|
+| PostgreSQL | 5432 | 5433 | 避免与本地 PostgreSQL 冲突 |
+| Redis | 6379 | 6380 | 避免与本地 Redis 冲突 |
+| API | 8000 | 8020 | 后端 API 服务 |
+| Frontend | 80 | 8021 | 前端界面 |
+
+## 性能优化
+
+- **Redis 缓存**：API 响应缓存，减少数据库查询
+- **连接池**：PostgreSQL 连接池，提高并发性能
+- **索引优化**：数据库索引优化查询速度
+- **Gzip 压缩**：Nginx 启用 Gzip 压缩静态资源
+
+## 安全建议
+
+1. **修改默认密码**：使用强密码
+2. **限制访问**：使用防火墙限制端口访问
+3. **启用 HTTPS**：生产环境使用 SSL 证书
+4. **定期备份**：设置自动备份策略
+5. **更新依赖**：定期更新 Docker 镜像
+
+## 扩展功能
+
+### 添加新指标
+
+编辑 `backend/functions/collect_data.py`：
+```python
+FRED_SERIES = [
+    "DGS2",
+    "DGS10",
+    # 添加新的 FRED 系列 ID
+    "YOUR_SERIES_ID",
+]
+```
+
+### 修改采集频率
+
+编辑 `.env` 文件：
+```bash
+# 每 3 小时采集一次
+CRON_SCHEDULE="0 */3 * * *"
+```
+
+### 自定义前端
+
+修改 `frontend/src/` 中的组件，然后重新构建：
+```bash
+cd frontend
+npm run build
+```
+
+## 关于 n8n
+
+**不需要 n8n**。本项目已经使用 Docker 内置的 cron 实现了定时数据采集，功能完整且轻量。
+
+如果你需要更复杂的工作流（如数据采集失败时发送通知、多数据源编排等），可以考虑集成 n8n，但对于当前需求来说不是必需的。
 
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
-## License
+## 许可证
 
-MIT
+MIT License
+
+## 致谢
+
+- 数据来源：[FRED (Federal Reserve Economic Data)](https://fred.stlouisfed.org/)
+- 图标：[Lucide Icons](https://lucide.dev/)
+
+## 联系方式
+
+- GitHub: https://github.com/K1ndredzzz/MacroDashboard
+- Issues: https://github.com/K1ndredzzz/MacroDashboard/issues
+
+---
+
+**注意**：本项目仅供学习和研究使用，不构成任何投资建议。

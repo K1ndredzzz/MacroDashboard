@@ -1,0 +1,8 @@
+{
+  "registry-mirrors": [
+    "https://docker.m.daocloud.io",
+    "https://docker.nju.edu.cn",
+    "https://docker.mirrors.sjtug.sjtu.edu.cn"
+  ],
+  "dns": ["8.8.8.8", "114.114.114.114"]
+}

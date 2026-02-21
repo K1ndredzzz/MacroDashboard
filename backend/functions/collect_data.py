@@ -82,12 +82,12 @@ def insert_observations(conn, observations: List[Dict[str, Any]]):
                     obs['indicator_code'],
                     obs['observation_date'],
                     obs['value'],
-                    obs['value_text'],
+                    obs.get('value_text'),
                     obs['quality_status']
                 ))
                 inserted += 1
             except Exception as e:
-                logger.error(f"Error inserting observation: {e}")
+                logger.error(f"Error inserting observation for {obs.get('indicator_code')}: {e}")
                 continue
 
     conn.commit()
@@ -162,9 +162,13 @@ def main():
                 continue
 
             # Transform to standard format
+            series_data = {
+                "series_id": series_id,
+                "observations": raw_data['observations']
+            }
             observations = transformer.transform_observations(
-                series_id=series_id,
-                raw_observations=raw_data['observations']
+                series_data=series_data,
+                run_id=run_id
             )
 
             total_processed += len(observations)
@@ -200,7 +204,8 @@ def main():
     logger.info(f"Data collection complete - Run ID: {run_id}")
     logger.info(f"Processed: {total_processed}, Inserted: {total_inserted}")
 
-    return 0 if status == "success" else 1
+    # Return 0 for success or partial_success (most data collected successfully)
+    return 0 if status in ["success", "partial_success"] else 1
 
 
 if __name__ == "__main__":

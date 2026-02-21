@@ -7,6 +7,9 @@ RUN apt-get update && \
     apt-get install -y cron curl && \
     rm -rf /var/lib/apt/lists/*
 
+# Use Tsinghua PyPI mirror for faster downloads
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
 # Copy requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt psycopg2-binary
