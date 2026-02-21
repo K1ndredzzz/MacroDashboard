@@ -218,6 +218,32 @@ class PostgresRepository:
                     cur.execute(date_query)
                     result = cur.fetchone()
                     observation_date = result['latest_date'] if result else None
+        else:
+            # If date specified, find the closest available date (on or before)
+            date_query = """
+            SELECT MAX(observation_date) as closest_date
+            FROM core.fact_observations
+            WHERE indicator_code IN ('US2Y', 'US10Y')
+            AND quality_status = 'ok'
+            AND observation_date <= %s
+            """
+
+            with self._get_connection() as conn:
+                with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                    cur.execute(date_query, (observation_date,))
+                    result = cur.fetchone()
+                    if result and result['closest_date']:
+                        observation_date = result['closest_date']
+                    else:
+                        # If no data on or before, get earliest available
+                        cur.execute("""
+                            SELECT MIN(observation_date) as earliest_date
+                            FROM core.fact_observations
+                            WHERE indicator_code IN ('US2Y', 'US10Y')
+                            AND quality_status = 'ok'
+                        """)
+                        result = cur.fetchone()
+                        observation_date = result['earliest_date'] if result else None
 
         if not observation_date:
             raise ValueError("No yield curve data available")

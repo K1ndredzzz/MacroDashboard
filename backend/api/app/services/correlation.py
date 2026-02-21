@@ -81,8 +81,10 @@ class CorrelationService:
         # Drop rows with any remaining NaN
         merged_df = merged_df.dropna()
 
-        if len(merged_df) < window_days:
-            raise ValueError(f"Insufficient data points: {len(merged_df)} < {window_days}")
+        # Need at least 2 data points for correlation
+        min_required_points = max(2, min(10, window_days // 10))
+        if len(merged_df) < min_required_points:
+            raise ValueError(f"Insufficient data points: {len(merged_df)} < {min_required_points} (minimum required)")
 
         # Calculate correlation matrix
         corr_matrix = merged_df.corr(method='pearson')

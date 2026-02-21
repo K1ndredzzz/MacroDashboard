@@ -21,7 +21,7 @@ interface CorrelationData {
   observation_count: number;
 }
 
-const DEFAULT_INDICATORS = ['US10Y', 'US2Y', 'EURUSD', 'GOLD', 'CRUDE'];
+const DEFAULT_INDICATORS = ['US10Y', 'US2Y', 'EURUSD', 'WTI', 'USDJPY'];
 
 export const CorrelationHeatmap: React.FC = () => {
   const [data, setData] = useState<CorrelationData | null>(null);
