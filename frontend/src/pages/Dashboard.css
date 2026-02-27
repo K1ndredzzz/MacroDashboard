@@ -200,6 +200,7 @@
 /* Category Sections Map onto Grid */
 .category-section {
   grid-column: span 12;
-  display: contents;
-  /* Allows children to participate in the grid directly */
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
 }
