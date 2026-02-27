@@ -109,7 +109,7 @@ export const ShockSimulator: React.FC = () => {
   };
 
   return (
-    <div className="shock-simulator">
+    <div className="shock-simulator card">
       <div className="simulator-header">
         <h3>情景冲击模拟器</h3>
         <p className="subtitle">模拟经济冲击对各指标的影响</p>
@@ -195,15 +195,18 @@ export const ShockSimulator: React.FC = () => {
                 layout="vertical"
                 margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" label={{ value: '预测变化 (%)', position: 'insideBottom', offset: -10 }} />
-                <YAxis type="category" dataKey="indicator_name" width={110} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                <XAxis type="number" label={{ value: '预测变化 (%)', position: 'insideBottom', offset: -10, fill: 'var(--text-secondary)' }} stroke="var(--text-secondary)" tick={{ fill: 'var(--text-secondary)' }} />
+                <YAxis type="category" dataKey="indicator_name" width={110} stroke="var(--text-secondary)" tick={{ fill: 'var(--text-secondary)' }} />
                 <Tooltip
+                  contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+                  itemStyle={{ color: 'var(--text-primary)' }}
                   formatter={(value: number | undefined) => value !== undefined ? formatChange(value) : '-'}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   labelFormatter={(label: any) => `指标: ${label}`}
                 />
-                <Legend />
-                <ReferenceLine x={0} stroke="#666" />
+                <Legend wrapperStyle={{ color: 'var(--text-primary)' }} />
+                <ReferenceLine x={0} stroke="var(--border-color)" />
                 <Bar dataKey="predicted_change" name="预测变化" radius={[0, 4, 4, 0]}>
                   {result.impacts.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={getImpactColor(entry.impact_level)} />
@@ -266,11 +269,9 @@ export const ShockSimulator: React.FC = () => {
 
       <style>{`
         .shock-simulator {
-          background: white;
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          margin-bottom: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
         }
 
         .simulator-header {
@@ -280,20 +281,21 @@ export const ShockSimulator: React.FC = () => {
         .simulator-header h3 {
           margin: 0 0 0.25rem 0;
           font-size: 1.25rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .simulator-header .subtitle {
           margin: 0;
           font-size: 0.875rem;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .simulator-controls {
-          background: #f9fafb;
+          background: var(--bg-main);
           border-radius: 6px;
           padding: 1.5rem;
           margin-bottom: 1.5rem;
+          border: 1px solid var(--border-color);
         }
 
         .control-group {
@@ -307,7 +309,7 @@ export const ShockSimulator: React.FC = () => {
         .control-group label {
           display: block;
           font-weight: 600;
-          color: #374151;
+          color: var(--text-primary);
           margin-bottom: 0.5rem;
           font-size: 0.875rem;
         }
@@ -320,41 +322,42 @@ export const ShockSimulator: React.FC = () => {
         .type-button {
           flex: 1;
           padding: 0.75rem 1rem;
-          border: 2px solid #d1d5db;
-          background: white;
+          border: 1px solid var(--border-color);
+          background: var(--bg-card);
           border-radius: 6px;
           cursor: pointer;
           font-weight: 600;
-          color: #1f2937 !important;
+          color: var(--text-secondary) !important;
           transition: all 0.2s;
         }
 
         .type-button:hover {
-          border-color: #3b82f6;
-          color: #2563eb !important;
-          background: #f9fafb;
+          border-color: var(--accent-blue);
+          color: var(--accent-blue) !important;
+          background: var(--bg-main);
         }
 
         .type-button.active {
-          border-color: #3b82f6;
-          background: #3b82f6;
+          border-color: var(--accent-blue);
+          background: var(--accent-blue);
           color: white !important;
         }
 
         .indicator-select {
           width: 100%;
           padding: 0.75rem;
-          border: 1px solid #d1d5db;
+          border: 1px solid var(--border-color);
           border-radius: 6px;
           font-size: 0.875rem;
-          background: white;
+          background: var(--bg-card);
+          color: var(--text-primary);
         }
 
         .magnitude-slider {
           width: 100%;
           height: 6px;
           border-radius: 3px;
-          background: #e5e7eb;
+          background: var(--border-color);
           outline: none;
           -webkit-appearance: none;
         }
@@ -365,7 +368,7 @@ export const ShockSimulator: React.FC = () => {
           width: 20px;
           height: 20px;
           border-radius: 50%;
-          background: #3b82f6;
+          background: var(--accent-blue);
           cursor: pointer;
         }
 
@@ -373,7 +376,7 @@ export const ShockSimulator: React.FC = () => {
           width: 20px;
           height: 20px;
           border-radius: 50%;
-          background: #3b82f6;
+          background: var(--accent-blue);
           cursor: pointer;
           border: none;
         }
@@ -383,13 +386,13 @@ export const ShockSimulator: React.FC = () => {
           justify-content: space-between;
           margin-top: 0.5rem;
           font-size: 0.75rem;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .simulate-button {
           width: 100%;
           padding: 0.875rem;
-          background: #3b82f6;
+          background: var(--accent-blue);
           color: white;
           border: none;
           border-radius: 6px;
@@ -405,21 +408,24 @@ export const ShockSimulator: React.FC = () => {
         }
 
         .simulate-button:disabled {
-          background: #9ca3af;
+          background: var(--border-color);
+          color: var(--text-secondary);
           cursor: not-allowed;
         }
 
         .error-message {
           padding: 1rem;
-          background: #fee2e2;
-          border: 1px solid #fecaca;
+          background: rgba(255, 59, 48, 0.15);
+          border: 1px solid var(--accent-red);
           border-radius: 6px;
-          color: #dc2626;
+          color: var(--text-primary);
           margin-bottom: 1.5rem;
         }
 
         .simulation-results {
           margin-top: 1.5rem;
+          border-top: 1px solid var(--border-color);
+          padding-top: 1.5rem;
         }
 
         .results-header {
@@ -429,18 +435,19 @@ export const ShockSimulator: React.FC = () => {
         .results-header h4 {
           margin: 0 0 0.25rem 0;
           font-size: 1.125rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .results-meta {
           margin: 0;
           font-size: 0.75rem;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .impact-chart {
           margin-bottom: 1.5rem;
-          background: #f9fafb;
+          background: var(--bg-main);
+          border: 1px solid var(--border-color);
           border-radius: 6px;
           padding: 1rem;
         }
@@ -452,7 +459,7 @@ export const ShockSimulator: React.FC = () => {
         .impact-details h5 {
           margin: 0 0 1rem 0;
           font-size: 1rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .impact-table {
@@ -466,27 +473,28 @@ export const ShockSimulator: React.FC = () => {
         }
 
         .impact-table th {
-          background: #f9fafb;
+          background: var(--bg-main);
           padding: 0.75rem;
           text-align: left;
           font-weight: 600;
-          color: #374151;
-          border-bottom: 2px solid #e5e7eb;
+          color: var(--text-primary);
+          border-bottom: 2px solid var(--border-color);
+          border-top: 1px solid var(--border-color);
         }
 
         .impact-table td {
           padding: 0.75rem;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid var(--border-color);
         }
 
         .impact-table .indicator-name {
           font-weight: 500;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .impact-table .correlation {
           font-family: monospace;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .impact-table .change {
@@ -495,16 +503,16 @@ export const ShockSimulator: React.FC = () => {
         }
 
         .impact-table .change.positive {
-          color: #059669;
+          color: var(--accent-green);
         }
 
         .impact-table .change.negative {
-          color: #dc2626;
+          color: var(--accent-red);
         }
 
         .impact-table .confidence {
           font-size: 0.75rem;
-          color: #6b7280;
+          color: var(--text-secondary);
           font-family: monospace;
         }
 
@@ -517,28 +525,28 @@ export const ShockSimulator: React.FC = () => {
         }
 
         .impact-badge.direct {
-          background: #dbeafe;
-          color: #1e40af;
+          background: rgba(59, 130, 246, 0.2);
+          color: #60a5fa;
         }
 
         .impact-badge.strong {
-          background: #d1fae5;
-          color: #065f46;
+          background: rgba(0, 200, 5, 0.15);
+          color: var(--accent-green);
         }
 
         .impact-badge.moderate {
-          background: #fef3c7;
-          color: #92400e;
+          background: rgba(245, 158, 11, 0.15);
+          color: #fbbf24;
         }
 
         .impact-badge.weak {
-          background: #f3f4f6;
-          color: #374151;
+          background: var(--border-color);
+          color: var(--text-secondary);
         }
 
         .simulation-notes {
-          background: #fffbeb;
-          border: 1px solid #fde68a;
+          background: var(--bg-main);
+          border: 1px solid var(--border-color);
           border-radius: 6px;
           padding: 1rem;
         }
@@ -546,14 +554,14 @@ export const ShockSimulator: React.FC = () => {
         .simulation-notes h5 {
           margin: 0 0 0.5rem 0;
           font-size: 0.875rem;
-          color: #92400e;
+          color: var(--text-primary);
         }
 
         .simulation-notes ul {
           margin: 0;
           padding-left: 1.25rem;
           font-size: 0.75rem;
-          color: #78350f;
+          color: var(--text-secondary);
         }
 
         .simulation-notes li {

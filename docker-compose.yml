@@ -12,9 +12,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/scripts/postgres:/docker-entrypoint-initdb.d
     ports:
-      - "5433:5432"  # 外部5433，避免与本地PostgreSQL冲突
+      - "5433:5432" # 外部5433，避免与本地PostgreSQL冲突
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U macro_user -d macro_dashboard"]
+      test: [ "CMD-SHELL", "pg_isready -U macro_user -d macro_dashboard" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,9 +28,9 @@ services:
     volumes:
       - redis_data:/data
     ports:
-      - "6380:6379"  # 外部6380，避免与本地Redis冲突
+      - "6380:6379" # 外部6380，避免与本地Redis冲突
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -67,9 +67,9 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8020:8000"  # 外部8020
+      - "8020:8000" # 外部8020
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -88,7 +88,7 @@ services:
       POSTGRES_USER: macro_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       FRED_API_KEY: ${FRED_API_KEY}
-      CRON_SCHEDULE: "0 */6 * * *"  # Every 6 hours
+      CRON_SCHEDULE: "0 */6 * * *" # Every 6 hours
     depends_on:
       postgres:
         condition: service_healthy
@@ -99,13 +99,14 @@ services:
     container_name: macro-frontend
     restart: unless-stopped
     ports:
-      - "8021:80"  # 外部8021
+      - "8021:80" # 外部8021
     depends_on:
       - api
 
 volumes:
   postgres_data:
   redis_data:
+
 
 networks:
   default:

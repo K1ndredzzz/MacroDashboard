@@ -1,13 +1,26 @@
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  --bg-main: #040814;
+  --bg-card: rgba(15, 23, 42, 0.45);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --accent-blue: #3B82F6;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --accent-warning: #f59e0b;
+  --glass-blur: blur(16px);
+
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light;
-  color: rgba(0, 0, 0, 0.87);
-  background-color: #f5f5f5;
+  color-scheme: dark;
+  color: var(--text-primary);
+  /* Subdued animated gradient background */
+  background: radial-gradient(circle at 50% 0%, #1e293b 0%, #040814 60%);
+  background-attachment: fixed;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -31,16 +44,29 @@ body {
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+  padding-bottom: 2rem;
 }
 
 .card {
-  background: #1e293b;
-  border-radius: 8px;
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
 }
 
 .grid {
@@ -61,6 +87,7 @@ body {
 }
 
 @media (max-width: 768px) {
+
   .grid-cols-2,
   .grid-cols-3 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -72,13 +99,14 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 200px;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .error {
-  color: #ef4444;
+  color: var(--text-primary);
   padding: 1rem;
-  background: #7f1d1d;
+  background: rgba(255, 59, 48, 0.15);
+  border: 1px solid var(--accent-red);
   border-radius: 4px;
   margin: 1rem 0;
 }

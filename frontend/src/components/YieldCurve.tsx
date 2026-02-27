@@ -76,15 +76,15 @@ export const YieldCurve: React.FC = () => {
 
   const getCurveShapeColor = (shape: string) => {
     const colors: Record<string, string> = {
-      'normal': '#10b981',
-      'inverted': '#ef4444',
-      'flat': '#f59e0b'
+      'normal': 'var(--accent-green)',
+      'inverted': 'var(--accent-red)',
+      'flat': 'var(--accent-warning)'
     };
-    return colors[shape] || '#6b7280';
+    return colors[shape] || 'var(--text-secondary)';
   };
 
   return (
-    <div className="yield-curve">
+    <div className="yield-curve card">
       <div className="yield-curve-header">
         <h3>美债收益率曲线</h3>
         <div className="yield-curve-info">
@@ -105,35 +105,39 @@ export const YieldCurve: React.FC = () => {
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="maturity" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+          <XAxis dataKey="maturity" stroke="var(--text-secondary)" tick={{ fill: 'var(--text-secondary)' }} />
           <YAxis
-            label={{ value: '收益率 (%)', angle: -90, position: 'insideLeft' }}
+            label={{ value: '收益率 (%)', angle: -90, position: 'insideLeft', fill: 'var(--text-secondary)' }}
             domain={['auto', 'auto']}
+            stroke="var(--text-secondary)"
+            tick={{ fill: 'var(--text-secondary)' }}
           />
           <Tooltip
+            contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+            itemStyle={{ color: 'var(--text-primary)' }}
             formatter={(value: number | undefined) => value ? `${value.toFixed(2)}%` : '-'}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             labelFormatter={(label: any) => `期限: ${label}`}
           />
-          <Legend />
+          <Legend wrapperStyle={{ color: 'var(--text-primary)' }} />
           <Line
             type="monotone"
             dataKey="rate"
-            stroke="#3b82f6"
+            stroke="var(--accent-blue)"
             strokeWidth={2}
             name="收益率"
-            dot={{ r: 6 }}
+            dot={{ r: 6, fill: 'var(--bg-card)', stroke: 'var(--accent-blue)', strokeWidth: 2 }}
+            activeDot={{ r: 8, fill: 'var(--accent-blue)' }}
           />
         </LineChart>
       </ResponsiveContainer>
 
       <style>{`
         .yield-curve {
-          background: white;
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          margin-bottom: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
         }
 
         .yield-curve-header {
@@ -143,7 +147,7 @@ export const YieldCurve: React.FC = () => {
         .yield-curve-header h3 {
           margin: 0 0 0.5rem 0;
           font-size: 1.25rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .yield-curve-info {
@@ -153,7 +157,7 @@ export const YieldCurve: React.FC = () => {
         }
 
         .yield-curve-info .date {
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .yield-curve-info .curve-shape {
@@ -161,7 +165,7 @@ export const YieldCurve: React.FC = () => {
         }
 
         .yield-curve-info .spread {
-          color: #1f2937;
+          color: var(--text-primary);
           font-weight: 500;
         }
 
@@ -169,11 +173,13 @@ export const YieldCurve: React.FC = () => {
         .yield-curve.error {
           padding: 2rem;
           text-align: center;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .yield-curve.error {
-          color: #ef4444;
+          color: var(--text-primary);
+          background: rgba(255, 59, 48, 0.15);
+          border: 1px solid var(--accent-red);
         }
       `}</style>
     </div>

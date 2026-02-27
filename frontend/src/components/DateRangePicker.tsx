@@ -79,25 +79,29 @@ export const DateRangePicker: React.FC = () => {
 
       <style>{`
         .date-range-picker {
-          padding: 1rem;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          margin-bottom: 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem 1.5rem;
+          background: rgba(15, 23, 42, 0.45);
+          backdrop-filter: var(--glass-blur);
+          -webkit-backdrop-filter: var(--glass-blur);
+          border: 1px solid var(--border-color);
+          border-radius: 12px;
+          box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5);
         }
 
         .preset-buttons {
           display: flex;
           gap: 0.5rem;
           flex-wrap: wrap;
-          margin-bottom: 1rem;
         }
 
         .preset-btn {
           padding: 0.5rem 1rem;
-          border: 1px solid #d1d5db;
-          background: white;
-          color: #374151;
+          border: 1px solid var(--border-color);
+          background: var(--bg-main);
+          color: var(--text-primary);
           border-radius: 6px;
           cursor: pointer;
           font-size: 0.875rem;
@@ -106,14 +110,14 @@ export const DateRangePicker: React.FC = () => {
         }
 
         .preset-btn:hover {
-          background: #f3f4f6;
-          border-color: #9ca3af;
+          background: var(--border-color);
+          border-color: var(--accent-blue);
         }
 
         .preset-btn.active {
-          background: #3b82f6;
+          background: var(--accent-blue);
           color: white;
-          border-color: #3b82f6;
+          border-color: var(--accent-blue);
         }
 
         .custom-range {
@@ -121,21 +125,23 @@ export const DateRangePicker: React.FC = () => {
           gap: 0.5rem;
           align-items: center;
           padding: 1rem;
-          background: #f9fafb;
+          background: var(--bg-main);
           border-radius: 6px;
           margin-bottom: 1rem;
         }
 
         .custom-range input[type="date"] {
           padding: 0.5rem;
-          border: 1px solid #d1d5db;
+          border: 1px solid var(--border-color);
+          background: var(--bg-card);
+          color: var(--text-primary);
           border-radius: 4px;
           font-size: 0.875rem;
         }
 
         .custom-range button {
           padding: 0.5rem 1rem;
-          background: #3b82f6;
+          background: var(--accent-blue);
           color: white;
           border: none;
           border-radius: 4px;
@@ -149,7 +155,7 @@ export const DateRangePicker: React.FC = () => {
 
         .current-range {
           font-size: 0.875rem;
-          color: #6b7280;
+          color: var(--text-secondary);
           text-align: center;
         }
       `}</style>

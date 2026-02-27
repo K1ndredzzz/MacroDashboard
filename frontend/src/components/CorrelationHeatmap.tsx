@@ -96,7 +96,7 @@ export const CorrelationHeatmap: React.FC = () => {
   const indicators = data.matrix.map(row => row.indicator);
 
   return (
-    <div className="correlation-heatmap">
+    <div className="correlation-heatmap card">
       <div className="heatmap-header">
         <h3>相关性分析</h3>
         <div className="heatmap-controls">
@@ -167,11 +167,9 @@ export const CorrelationHeatmap: React.FC = () => {
 
       <style>{`
         .correlation-heatmap {
-          background: white;
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          margin-bottom: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
         }
 
         .heatmap-header {
@@ -184,7 +182,7 @@ export const CorrelationHeatmap: React.FC = () => {
         .heatmap-header h3 {
           margin: 0;
           font-size: 1.25rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .heatmap-controls {
@@ -198,17 +196,20 @@ export const CorrelationHeatmap: React.FC = () => {
           display: flex;
           gap: 0.5rem;
           align-items: center;
+          color: var(--text-secondary);
         }
 
         .heatmap-controls select {
           padding: 0.25rem 0.5rem;
-          border: 1px solid #d1d5db;
+          border: 1px solid var(--border-color);
           border-radius: 4px;
           font-size: 0.875rem;
+          background: var(--bg-main);
+          color: var(--text-primary);
         }
 
         .observation-count {
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .heatmap-container {
@@ -226,33 +227,37 @@ export const CorrelationHeatmap: React.FC = () => {
           padding: 0.75rem;
           text-align: center;
           font-weight: 600;
-          color: #1f2937;
-          background: #f9fafb;
+          color: var(--text-primary);
+          background: var(--bg-main);
+          border: 1px solid var(--border-color);
         }
 
         .heatmap-table td {
           padding: 0.75rem;
           text-align: center;
-          border: 1px solid #e5e7eb;
+          border: 1px solid var(--border-color);
           cursor: pointer;
           transition: transform 0.2s;
+          color: white;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+          font-weight: 600;
         }
 
         .heatmap-table td:hover {
           transform: scale(1.1);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
           z-index: 10;
         }
 
         .strong-correlations {
           padding-top: 1rem;
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid var(--border-color);
         }
 
         .strong-correlations h4 {
           margin: 0 0 0.75rem 0;
           font-size: 1rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .strong-correlations ul {
@@ -269,13 +274,14 @@ export const CorrelationHeatmap: React.FC = () => {
           justify-content: space-between;
           align-items: center;
           padding: 0.5rem;
-          background: #f9fafb;
+          background: var(--bg-main);
           border-radius: 4px;
+          border: 1px solid var(--border-color);
         }
 
         .indicator-pair {
           font-weight: 500;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .correlation-value {
@@ -285,24 +291,26 @@ export const CorrelationHeatmap: React.FC = () => {
         }
 
         .correlation-value.positive {
-          color: #059669;
-          background: #d1fae5;
+          color: var(--accent-green);
+          background: rgba(0, 200, 5, 0.1);
         }
 
         .correlation-value.negative {
-          color: #dc2626;
-          background: #fee2e2;
+          color: var(--accent-red);
+          background: rgba(255, 59, 48, 0.1);
         }
 
         .correlation-heatmap.loading,
         .correlation-heatmap.error {
           padding: 2rem;
           text-align: center;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .correlation-heatmap.error {
-          color: #ef4444;
+          color: var(--text-primary);
+          background: rgba(255, 59, 48, 0.15);
+          border: 1px solid var(--accent-red);
         }
       `}</style>
     </div>

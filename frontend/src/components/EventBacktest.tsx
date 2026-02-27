@@ -124,7 +124,7 @@ export const EventBacktest: React.FC = () => {
   };
 
   return (
-    <div className="event-backtest">
+    <div className="event-backtest card">
       <div className="backtest-header">
         <h3>历史事件回测</h3>
         <p className="subtitle">分析重大事件对宏观指标的影响</p>
@@ -201,19 +201,23 @@ export const EventBacktest: React.FC = () => {
               <h5>趋势图</h5>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                   <XAxis
                     dataKey="observation_date"
                     type="category"
                     allowDuplicatedCategory={false}
                     tickFormatter={(date) => new Date(date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
+                    stroke="var(--text-secondary)"
+                    tick={{ fill: 'var(--text-secondary)' }}
                   />
-                  <YAxis />
+                  <YAxis stroke="var(--text-secondary)" tick={{ fill: 'var(--text-secondary)' }} />
                   <Tooltip
+                    contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
                     labelFormatter={(date) => new Date(date).toLocaleDateString('zh-CN')}
                     formatter={(value: number | undefined) => value ? value.toFixed(2) : '-'}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ color: 'var(--text-primary)' }} />
                   {impact.indicators.map((indicator, idx) => {
                     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
                     const chartData = indicator.observations.map(obs => ({
@@ -243,11 +247,9 @@ export const EventBacktest: React.FC = () => {
 
       <style>{`
         .event-backtest {
-          background: white;
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          margin-bottom: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
         }
 
         .backtest-header {
@@ -257,19 +259,19 @@ export const EventBacktest: React.FC = () => {
         .backtest-header h3 {
           margin: 0 0 0.25rem 0;
           font-size: 1.25rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .backtest-header .subtitle {
           margin: 0;
           font-size: 0.875rem;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .event-timeline h4 {
           margin: 0 0 1rem 0;
           font-size: 1rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .timeline-container {
@@ -279,7 +281,7 @@ export const EventBacktest: React.FC = () => {
           max-height: 300px;
           overflow-y: auto;
           padding: 0.5rem;
-          background: #f9fafb;
+          background: var(--bg-main);
           border-radius: 6px;
         }
 
@@ -287,20 +289,20 @@ export const EventBacktest: React.FC = () => {
           display: flex;
           gap: 0.75rem;
           padding: 0.75rem;
-          background: white;
+          background: var(--bg-card);
           border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s;
-          border: 2px solid transparent;
+          border: 1px solid var(--border-color);
         }
 
         .timeline-item:hover {
-          background: #f3f4f6;
+          background: var(--border-color);
         }
 
         .timeline-item.active {
-          border-color: #3b82f6;
-          background: #eff6ff;
+          border-color: var(--accent-blue);
+          background: rgba(59, 130, 246, 0.1);
         }
 
         .timeline-marker {
@@ -317,7 +319,7 @@ export const EventBacktest: React.FC = () => {
 
         .event-name {
           font-weight: 600;
-          color: #1f2937;
+          color: var(--text-primary);
           margin-bottom: 0.25rem;
         }
 
@@ -325,19 +327,19 @@ export const EventBacktest: React.FC = () => {
           display: flex;
           gap: 1rem;
           font-size: 0.75rem;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .impact-loading {
           padding: 2rem;
           text-align: center;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .event-impact {
           margin-top: 1.5rem;
           padding-top: 1.5rem;
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid var(--border-color);
         }
 
         .impact-header {
@@ -347,25 +349,26 @@ export const EventBacktest: React.FC = () => {
         .impact-header h4 {
           margin: 0 0 0.5rem 0;
           font-size: 1.125rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .event-description {
           margin: 0 0 0.5rem 0;
           font-size: 0.875rem;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .analysis-window {
           margin: 0;
           font-size: 0.75rem;
-          color: #9ca3af;
+          color: var(--text-secondary);
+          opacity: 0.7;
         }
 
         .impact-summary h5 {
           margin: 0 0 1rem 0;
           font-size: 1rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .impact-cards {
@@ -377,14 +380,14 @@ export const EventBacktest: React.FC = () => {
 
         .impact-card {
           padding: 1rem;
-          background: #f9fafb;
+          background: var(--bg-main);
           border-radius: 6px;
-          border: 1px solid #e5e7eb;
+          border: 1px solid var(--border-color);
         }
 
         .impact-card .indicator-name {
           font-weight: 600;
-          color: #1f2937;
+          color: var(--text-primary);
           margin-bottom: 0.75rem;
           font-size: 0.875rem;
         }
@@ -403,12 +406,12 @@ export const EventBacktest: React.FC = () => {
         }
 
         .impact-card .label {
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .impact-card .value {
           font-weight: 500;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .impact-card .change {
@@ -420,13 +423,13 @@ export const EventBacktest: React.FC = () => {
         }
 
         .impact-card .change.positive {
-          color: #059669;
-          background: #d1fae5;
+          color: var(--accent-green);
+          background: rgba(0, 200, 5, 0.1);
         }
 
         .impact-card .change.negative {
-          color: #dc2626;
-          background: #fee2e2;
+          color: var(--accent-red);
+          background: rgba(255, 59, 48, 0.1);
         }
 
         .impact-chart {
@@ -436,18 +439,20 @@ export const EventBacktest: React.FC = () => {
         .impact-chart h5 {
           margin: 0 0 1rem 0;
           font-size: 1rem;
-          color: #1f2937;
+          color: var(--text-primary);
         }
 
         .event-backtest.loading,
         .event-backtest.error {
           padding: 2rem;
           text-align: center;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
 
         .event-backtest.error {
-          color: #ef4444;
+          color: var(--text-primary);
+          background: rgba(255, 59, 48, 0.15);
+          border: 1px solid var(--accent-red);
         }
       `}</style>
     </div>

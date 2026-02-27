@@ -1,90 +1,205 @@
 .dashboard {
   min-height: 100vh;
-  background: #0f172a;
+  color: var(--text-primary);
 }
 
 .dashboard-header {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  padding: 2rem 1rem;
-  text-align: center;
-  border-bottom: 1px solid #334155;
+  padding: 2rem;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  color: #94a3b8;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.github-link {
+  color: var(--text-secondary);
+  transition: color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.github-link:hover {
+  color: var(--text-primary);
+  transform: scale(1.1);
+}
+
+.github-link svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
 }
 
 .update-time {
-  color: #64748b;
-  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  opacity: 0.7;
+  font-family: 'Roboto Mono', monospace;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
 }
 
-.category-section {
-  margin: 2rem 0;
+/* Grid Spans for Dashboard layout */
+.col-span-12 {
+  grid-column: span 12;
 }
 
-.category-title {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #e2e8f0;
-  padding-left: 1rem;
-  border-left: 4px solid #3b82f6;
+.col-span-8 {
+  grid-column: span 8;
 }
 
+.col-span-6 {
+  grid-column: span 6;
+}
+
+.col-span-4 {
+  grid-column: span 4;
+}
+
+@media (max-width: 1024px) {
+
+  .col-span-8,
+  .col-span-6,
+  .col-span-4 {
+    grid-column: span 12;
+  }
+}
+
+/* Indicator Cards (Top row typically) */
 .indicator-card {
-  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.indicator-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.indicator-card:hover::before {
+  opacity: 1;
 }
 
 .indicator-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+  transform: translateY(-4px);
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 .indicator-name {
   font-size: 0.875rem;
-  color: #94a3b8;
-  margin-bottom: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
 }
 
 .indicator-value {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #e2e8f0;
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+  font-family: 'Roboto Mono', monospace;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
 .unit {
   font-size: 1rem;
-  color: #64748b;
-  font-weight: 400;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+}
+
+.indicator-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
 }
 
 .indicator-change {
   font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .indicator-change.positive {
-  color: #10b981;
+  color: var(--accent-green);
+  background: rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .indicator-change.negative {
-  color: #ef4444;
+  color: var(--accent-red);
+  background: rgba(239, 68, 68, 0.15);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .indicator-date {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-secondary);
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* Category Sections Map onto Grid */
+.category-section {
+  grid-column: span 12;
+  display: contents;
+  /* Allows children to participate in the grid directly */
 }
