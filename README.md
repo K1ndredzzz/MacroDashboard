@@ -5,8 +5,6 @@ V2 版本带来了极致的**“控制室 (Control Room)”**拟态玻璃风 (Gl
 
 数据完全基于 **FRED API** 自动采集，应用采用现代化容器架构 (Docker Compose) 进行一键私有化部署。
 
-![MacroDashboard V2 Preview](https://github.com/K1ndredzzz/MacroDashboard/assets/preview.png)
-
 ---
 
 ## 🌟 核心特性
