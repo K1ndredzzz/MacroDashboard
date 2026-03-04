@@ -1,5 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TimeRangeProvider } from './contexts/TimeRangeContext';
+import { AnalyticsProvider } from './contexts/AnalyticsContext';
+import { MarketDataProvider } from './contexts/MarketDataContext';
 import Dashboard from './pages/Dashboard';
 
 const queryClient = new QueryClient({
@@ -15,7 +17,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TimeRangeProvider>
-        <Dashboard />
+        <AnalyticsProvider>
+          <MarketDataProvider>
+            <Dashboard />
+          </MarketDataProvider>
+        </AnalyticsProvider>
       </TimeRangeProvider>
     </QueryClientProvider>
   );

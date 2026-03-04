@@ -1,0 +1,3 @@
+export const CORRELATION_INDICATORS = ['US10Y', 'US2Y', 'EURUSD', 'WTI', 'USDJPY'] as const;
+
+export const DEFAULT_CORRELATION_WINDOW_DAYS = 90;

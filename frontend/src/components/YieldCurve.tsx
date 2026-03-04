@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useDateRange } from '../hooks/useDateRange';
+import { useMarketData } from '../contexts/MarketDataContext';
 
 interface YieldCurvePoint {
   maturity: string;
@@ -19,8 +20,51 @@ export const YieldCurve: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { formattedRange } = useDateRange();
+  const { snapshotsByCode } = useMarketData();
+
+  const snapshotCurveData = useMemo<YieldCurveData | null>(() => {
+    const us2ySnapshot = snapshotsByCode.US2Y;
+    const us10ySnapshot = snapshotsByCode.US10Y;
+
+    const rate2y = us2ySnapshot ? Number.parseFloat(us2ySnapshot.latest_value) : Number.NaN;
+    const rate10y = us10ySnapshot ? Number.parseFloat(us10ySnapshot.latest_value) : Number.NaN;
+
+    if (!Number.isFinite(rate2y) || !Number.isFinite(rate10y)) {
+      return null;
+    }
+
+    const spread = rate10y - rate2y;
+    const dateCandidates = [us2ySnapshot?.as_of_date, us10ySnapshot?.as_of_date].filter(Boolean) as string[];
+    const observationDate = dateCandidates.length > 0
+      ? dateCandidates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[dateCandidates.length - 1]
+      : new Date().toISOString();
+
+    let curveShape = 'flat';
+    if (spread > 0.5) {
+      curveShape = 'normal';
+    } else if (spread < -0.1) {
+      curveShape = 'inverted';
+    }
+
+    return {
+      observation_date: observationDate,
+      points: [
+        { maturity: '2Y', rate: rate2y.toString() },
+        { maturity: '10Y', rate: rate10y.toString() }
+      ],
+      spread_10y_2y: spread.toString(),
+      curve_shape: curveShape
+    };
+  }, [snapshotsByCode.US2Y, snapshotsByCode.US10Y]);
 
   useEffect(() => {
+    if (snapshotCurveData) {
+      setData(snapshotCurveData);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     const fetchYieldCurve = async () => {
       setLoading(true);
       setError(null);
@@ -46,7 +90,7 @@ export const YieldCurve: React.FC = () => {
     };
 
     fetchYieldCurve();
-  }, [formattedRange.endDateStr]);
+  }, [formattedRange.endDateStr, snapshotCurveData]);
 
   if (loading) {
     return <div className="yield-curve loading">加载中...</div>;
@@ -60,10 +104,27 @@ export const YieldCurve: React.FC = () => {
     return null;
   }
 
-  const chartData = data.points.map(point => ({
-    maturity: point.maturity,
-    rate: parseFloat(point.rate)
-  }));
+  const maturityToMonths = (maturity: string): number => {
+    const label = maturity.trim().toUpperCase();
+    if (label.length < 2) return Number.MAX_SAFE_INTEGER;
+
+    const unit = label.slice(-1);
+    const value = Number.parseFloat(label.slice(0, -1));
+    if (Number.isNaN(value)) return Number.MAX_SAFE_INTEGER;
+
+    if (unit === 'D') return value / 30;
+    if (unit === 'W') return (value * 7) / 30;
+    if (unit === 'M') return value;
+    if (unit === 'Y') return value * 12;
+    return Number.MAX_SAFE_INTEGER;
+  };
+
+  const chartData = [...data.points]
+    .sort((a, b) => maturityToMonths(a.maturity) - maturityToMonths(b.maturity))
+    .map(point => ({
+      maturity: point.maturity,
+      rate: Number.parseFloat(point.rate)
+    }));
 
   const getCurveShapeLabel = (shape: string) => {
     const labels: Record<string, string> = {

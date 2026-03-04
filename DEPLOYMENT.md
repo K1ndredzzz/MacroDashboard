@@ -26,8 +26,8 @@ cd MacroDashboard
 cp .env.example .env
 nano .env  # 填入 POSTGRES_PASSWORD 和 FRED_API_KEY
 
-# 启动服务
-docker-compose up -d
+# 启动服务（首次或更新采集器后建议带 --build）
+docker-compose up -d --build
 ```
 
 ### 3. 访问应用
@@ -48,7 +48,8 @@ FRED_API_KEY=your_fred_api_key  # 从 https://fred.stlouisfed.org 获取
 可选项：
 
 ```bash
-CRON_SCHEDULE=0 */6 * * *  # 数据采集频率（默认每6小时）
+CRON_SCHEDULE="0 */6 * * *"  # 数据采集频率（默认每6小时）
+LOOKBACK_DAYS=30  # 每次采集回看天数，默认30天
 FRONTEND_API_URL=http://your-server-ip:8000  # 前端 API 地址
 ```
 
@@ -79,6 +80,9 @@ docker-compose ps
 
 # 查看日志
 docker-compose logs -f
+
+# 只看采集器日志（排查 Cron 是否触发）
+docker-compose logs -f data-collector
 
 # 重启服务
 docker-compose restart

@@ -4,6 +4,7 @@ Pydantic schemas for simulation API
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from enum import Enum
+from datetime import date
 
 
 class ShockType(str, Enum):
@@ -20,6 +21,8 @@ class ShockSimulationRequest(BaseModel):
     target_indicator: str = Field(..., description="Indicator code being shocked (e.g., 'US10Y', 'EURUSD', 'WTI')")
     affected_indicators: Optional[List[str]] = Field(None, description="List of indicators to analyze (optional)")
     window_days: int = Field(90, description="Historical window for correlation calculation", ge=30, le=365)
+    start_date: Optional[date] = Field(None, description="Optional start date for correlation data window")
+    end_date: Optional[date] = Field(None, description="Optional end date for correlation data window")
 
     class Config:
         json_schema_extra = {
@@ -28,7 +31,9 @@ class ShockSimulationRequest(BaseModel):
                 "shock_magnitude": 1.0,
                 "target_indicator": "US10Y",
                 "affected_indicators": ["US2Y", "EURUSD", "WTI", "USDJPY"],
-                "window_days": 90
+                "window_days": 90,
+                "start_date": "2025-03-01",
+                "end_date": "2026-03-01"
             }
         }
 

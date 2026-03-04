@@ -20,6 +20,7 @@ from fred.extractor import FREDExtractor
 from fred.transformer import FREDTransformer
 from common.bq_loader import BigQueryLoader
 from common.config import config
+from common.series_config import CLOUD_FUNCTION_BASE_SERIES, build_fred_series
 
 # Configure logging
 logging.basicConfig(
@@ -27,24 +28,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-
-# FRED series to fetch
-FRED_SERIES = [
-    "DGS2",    # US 2Y Treasury
-    "DGS10",   # US 10Y Treasury
-    "DGS30",   # US 30Y Treasury
-    "DEXUSEU", # EUR/USD
-    "DEXJPUS", # USD/JPY
-    "DEXUSUK", # GBP/USD
-    "DCOILWTICO",  # WTI Oil
-    # "GOLDAMGBD228NLBM",  # Gold - Removed: LBMA data restricted by API
-    "CPIAUCSL",  # CPI
-    "CPILFESL",  # Core CPI
-    "PPIACO",    # PPI
-    "UNRATE",    # Unemployment Rate
-    "PAYEMS"     # Nonfarm Payrolls
-]
 
 
 @functions_framework.http
@@ -71,14 +54,21 @@ def ingest_fred_http(request):
         logger.error(f"Configuration error: {str(e)}")
         return {"error": str(e)}, 500
 
-    # Initialize components
-    extractor = FREDExtractor()
-    transformer = FREDTransformer()
-    loader = BigQueryLoader()
-
     # Parse request parameters
     request_json = request.get_json(silent=True) or {}
     lookback_days = request_json.get("lookback_days", 7)
+
+    # Initialize components
+    extractor = FREDExtractor()
+    transformer = FREDTransformer(gold_series_id=request_json.get("gold_series_id"))
+    loader = BigQueryLoader()
+
+    series_to_fetch = build_fred_series(
+        CLOUD_FUNCTION_BASE_SERIES,
+        skip_gold_series=request_json.get("skip_gold_series"),
+        gold_series_id=request_json.get("gold_series_id"),
+        logger=logger
+    )
 
     # Calculate date range
     end_date = datetime.utcnow().date()
@@ -106,7 +96,7 @@ def ingest_fred_http(request):
 
     try:
         # Fetch data for all series
-        for series_id in FRED_SERIES:
+        for series_id in series_to_fetch:
             try:
                 logger.info(f"Processing {series_id}")
 
@@ -166,7 +156,7 @@ def ingest_fred_http(request):
         # Determine final status
         if error_count == 0:
             status = "success"
-        elif error_count < len(FRED_SERIES):
+        elif error_count < len(series_to_fetch):
             status = "partial"
         else:
             status = "failed"
@@ -194,8 +184,9 @@ def ingest_fred_http(request):
             "run_id": run_id,
             "status": status,
             "duration_seconds": duration,
-            "series_processed": len(FRED_SERIES) - error_count,
+            "series_processed": len(series_to_fetch) - error_count,
             "series_failed": error_count,
+            "series_total": len(series_to_fetch),
             "observations_fetched": total_fetched,
             "observations_inserted": total_inserted,
             "observations_updated": total_updated,

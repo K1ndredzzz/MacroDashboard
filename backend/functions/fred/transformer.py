@@ -7,6 +7,8 @@ import json
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from decimal import Decimal
+import os
+from common.series_config import DEFAULT_GOLD_SERIES_ID
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +105,24 @@ class FREDTransformer:
         }
     }
 
+    def __init__(self, gold_series_id: Optional[str] = None):
+        # Runtime mapping supports configured gold series replacement.
+        self.series_mapping = dict(self.SERIES_MAPPING)
+
+        candidate_gold_series = {
+            DEFAULT_GOLD_SERIES_ID,
+            (os.getenv("GOLD_SERIES_ID") or "").strip(),
+            (gold_series_id or "").strip()
+        }
+        for configured_gold_series in candidate_gold_series:
+            if configured_gold_series and configured_gold_series not in self.series_mapping:
+                self.series_mapping[configured_gold_series] = {
+                    "series_uid": f"fred:{configured_gold_series}:US:D",
+                    "indicator_code": "GOLD",
+                    "country_code": "US"
+                }
+                logger.info(f"Registered custom gold series mapping: {configured_gold_series} -> GOLD")
+
     def transform_observations(
         self,
         series_data: Dict[str, Any],
@@ -121,11 +141,11 @@ class FREDTransformer:
         series_id = series_data["series_id"]
         observations = series_data.get("observations", [])
 
-        if series_id not in self.SERIES_MAPPING:
+        if series_id not in self.series_mapping:
             logger.warning(f"Unknown series ID: {series_id}")
             return []
 
-        metadata = self.SERIES_MAPPING[series_id]
+        metadata = self.series_mapping[series_id]
         transformed = []
 
         for obs in observations:
@@ -224,7 +244,6 @@ class FREDTransformer:
             "DEXUSUK": (0, float('inf')),
             # Commodities: must be positive
             "DCOILWTICO": (0, 500),
-            "GOLDAMGBD228NLBM": (0, 5000),
             # Indices: must be positive
             "CPIAUCSL": (0, 1000),
             "CPILFESL": (0, 1000),
@@ -238,6 +257,11 @@ class FREDTransformer:
             # Average hourly earnings: must be positive
             "AHETPI": (0, 200)
         }
+
+        # Any configured gold series mapped to indicator GOLD uses commodity-style validation.
+        mapping = self.series_mapping.get(series_id, {})
+        if mapping.get("indicator_code") == "GOLD":
+            ranges[series_id] = (0, 5000)
 
         if series_id in ranges:
             min_val, max_val = ranges[series_id]

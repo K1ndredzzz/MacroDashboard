@@ -29,6 +29,20 @@ class PostgresRepository:
         """Get database connection"""
         return psycopg2.connect(**self.conn_params)
 
+    @staticmethod
+    def _is_fixed_income_indicator(indicator_code: str) -> bool:
+        """Identify yield/rate style indicators that should use bps deltas."""
+        code = (indicator_code or "").upper()
+        if not code:
+            return False
+
+        return (
+            (code.startswith("US") and code.endswith("Y")) or
+            ("FEDFUNDS" in code) or
+            code.endswith("RATE") or
+            ("YIELD" in code)
+        )
+
     def get_indicators(self) -> List[Dict[str, Any]]:
         """
         Get all active indicators
@@ -283,6 +297,34 @@ class PostgresRepository:
                 elif code == 'US10Y':
                     points.append({'maturity': '10Y', 'rate': value})
 
+            def maturity_to_months(maturity: str) -> int:
+                """Convert maturity labels (e.g. 3M, 2Y) to months for stable ascending sorting."""
+                if not maturity:
+                    return 10**9
+
+                label = str(maturity).strip().upper()
+                if len(label) < 2:
+                    return 10**9
+
+                unit = label[-1]
+                try:
+                    value = float(label[:-1])
+                except ValueError:
+                    return 10**9
+
+                if unit == 'D':
+                    return int(value / 30)
+                if unit == 'W':
+                    return int((value * 7) / 30)
+                if unit == 'M':
+                    return int(value)
+                if unit == 'Y':
+                    return int(value * 12)
+                return 10**9
+
+            # Always render yield-curve points from short tenor to long tenor.
+            points.sort(key=lambda point: maturity_to_months(point['maturity']))
+
             # Calculate spread and determine curve shape
             spread = None
             curve_shape = 'unknown'
@@ -425,23 +467,39 @@ class PostgresRepository:
                     )
 
                     # Calculate before/after values
-                    observations = series_data['observations']
+                    observations = sorted(
+                        series_data['observations'],
+                        key=lambda obs: obs['observation_date']
+                    )
                     before_obs = [o for o in observations if o['observation_date'] < event_date]
                     after_obs = [o for o in observations if o['observation_date'] >= event_date]
 
-                    before_value = before_obs[0]['value'] if before_obs else None
+                    before_value = before_obs[-1]['value'] if before_obs else None
                     after_value = after_obs[0]['value'] if after_obs else None
 
+                    change_abs = None
                     change_pct = None
-                    if before_value and after_value:
-                        change_pct = ((after_value - before_value) / before_value) * 100
+                    change_bps = None
+                    if before_value is not None and after_value is not None:
+                        # Absolute change in percentage points.
+                        change_abs = after_value - before_value
+
+                        # Relative percentage change (kept for non-rate indicators).
+                        if before_value != 0:
+                            change_pct = (change_abs / before_value) * 100
+
+                        # Fixed-income change should be expressed in basis points.
+                        if self._is_fixed_income_indicator(code):
+                            change_bps = change_abs * 100
 
                     indicators_data.append({
                         'indicator_code': code,
                         'indicator_name': series_data['indicator_name'],
-                        'before_value': float(before_value) if before_value else None,
-                        'after_value': float(after_value) if after_value else None,
-                        'change_pct': float(change_pct) if change_pct else None,
+                        'before_value': float(before_value) if before_value is not None else None,
+                        'after_value': float(after_value) if after_value is not None else None,
+                        'change_abs': float(change_abs) if change_abs is not None else None,
+                        'change_pct': float(change_pct) if change_pct is not None else None,
+                        'change_bps': float(change_bps) if change_bps is not None else None,
                         'observations': observations
                     })
 
@@ -460,5 +518,3 @@ class PostgresRepository:
         except Exception as e:
             logger.error(f"PostgreSQL error: {str(e)}")
             raise
-
-

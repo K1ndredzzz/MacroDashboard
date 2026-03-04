@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
+import { useDateRange } from '../hooks/useDateRange';
+import { useAnalytics } from '../contexts/AnalyticsContext';
 
 interface ImpactPrediction {
   indicator_code: string;
@@ -31,13 +33,11 @@ const SHOCK_TYPES = [
 const TARGET_INDICATORS: Record<ShockType, Array<{ value: string; label: string }>> = {
   interest_rate: [
     { value: 'US10Y', label: '美债10年期' },
-    { value: 'US2Y', label: '美债2年期' },
-    { value: 'FEDFUNDS', label: '联邦基金利率' }
+    { value: 'US2Y', label: '美债2年期' }
   ],
   exchange_rate: [
     { value: 'EURUSD', label: '欧元/美元' },
-    { value: 'USDJPY', label: '美元/日元' },
-    { value: 'USDCNY', label: '美元/人民币' }
+    { value: 'USDJPY', label: '美元/日元' }
   ],
   oil_price: [
     { value: 'WTI', label: 'WTI原油' }
@@ -51,6 +51,8 @@ export const ShockSimulator: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { formattedRange } = useDateRange();
+  const { correlationIndicators, correlationWindowDays } = useAnalytics();
 
   const currentShockConfig = SHOCK_TYPES.find(s => s.value === shockType)!;
 
@@ -76,7 +78,10 @@ export const ShockSimulator: React.FC = () => {
           shock_type: shockType,
           shock_magnitude: shockMagnitude / (shockType === 'interest_rate' ? 100 : 1), // Convert bps to percentage
           target_indicator: targetIndicator,
-          window_days: 90
+          affected_indicators: correlationIndicators,
+          window_days: correlationWindowDays,
+          start_date: formattedRange.startDateStr,
+          end_date: formattedRange.endDateStr
         })
       });
 

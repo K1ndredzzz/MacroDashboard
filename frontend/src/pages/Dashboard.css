@@ -191,6 +191,13 @@
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.indicator-change.neutral {
+  color: var(--accent-warning);
+  background: rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
 .indicator-date {
   font-size: 0.75rem;
   color: var(--text-secondary);

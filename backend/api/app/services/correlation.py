@@ -4,7 +4,6 @@ Correlation analysis service
 import logging
 from typing import List, Dict, Any, Optional
 from datetime import date, timedelta
-import numpy as np
 import pandas as pd
 
 from ..repositories.postgres_repo import PostgresRepository
@@ -43,9 +42,13 @@ class CorrelationService:
         if not start_date:
             start_date = end_date - timedelta(days=365)
 
+        # De-duplicate codes while preserving caller-provided order.
+        ordered_codes = list(dict.fromkeys(indicator_codes))
+
         # Fetch data for all indicators
         data_frames = []
-        for code in indicator_codes:
+        valid_codes = []
+        for code in ordered_codes:
             try:
                 series_data = self.db_repo.get_series_data(
                     indicator_code=code,
@@ -62,6 +65,7 @@ class CorrelationService:
                 df = df.set_index('observation_date').sort_index()
 
                 data_frames.append(df)
+                valid_codes.append(code)
 
             except Exception as e:
                 logger.warning(f"Failed to fetch data for {code}: {str(e)}")
@@ -89,25 +93,44 @@ class CorrelationService:
         # Calculate correlation matrix
         corr_matrix = merged_df.corr(method='pearson')
 
+        # Keep matrix order stable and aligned with requested indicators.
+        corr_matrix = corr_matrix.reindex(index=valid_codes, columns=valid_codes)
+
+        # Enforce symmetry to guarantee A-B == B-A at serialization layer.
+        corr_matrix = (corr_matrix + corr_matrix.T) / 2
+        # Pandas/Numpy may expose a read-only backing array in some versions,
+        # so set diagonal values through DataFrame assignment instead of np.fill_diagonal.
+        for code in valid_codes:
+            corr_matrix.at[code, code] = 1.0
+
         # Convert to list of dicts for JSON serialization
         matrix_data = []
-        for i, row_name in enumerate(corr_matrix.index):
+        for row_name in corr_matrix.index:
             row_data = {
                 'indicator': row_name,
                 'correlations': {}
             }
-            for j, col_name in enumerate(corr_matrix.columns):
-                value = corr_matrix.iloc[i, j]
-                row_data['correlations'][col_name] = float(value) if not np.isnan(value) else None
+            for col_name in corr_matrix.columns:
+                value = corr_matrix.at[row_name, col_name]
+                if pd.isna(value):
+                    row_data['correlations'][col_name] = None
+                else:
+                    numeric_value = float(value)
+                    # Avoid rendering -0.00 in UI.
+                    if abs(numeric_value) < 1e-12:
+                        numeric_value = 0.0
+                    row_data['correlations'][col_name] = numeric_value
 
             matrix_data.append(row_data)
 
         # Find strong correlations (|r| > 0.7, excluding diagonal)
         strong_correlations = []
-        for i, row_name in enumerate(corr_matrix.index):
-            for j, col_name in enumerate(corr_matrix.columns):
+        for i, row_name in enumerate(valid_codes):
+            for j, col_name in enumerate(valid_codes):
                 if i < j:  # Only upper triangle
-                    value = corr_matrix.iloc[i, j]
+                    value = corr_matrix.at[row_name, col_name]
+                    if pd.isna(value):
+                        continue
                     if abs(value) > 0.7:
                         strong_correlations.append({
                             'indicator1': row_name,

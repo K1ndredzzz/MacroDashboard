@@ -1,13 +1,14 @@
-import { useDashboardOverview } from '../hooks/useApi';
 import { DateRangePicker } from '../components/DateRangePicker';
 import { YieldCurve } from '../components/YieldCurve';
 import { CorrelationHeatmap } from '../components/CorrelationHeatmap';
 import { EventBacktest } from '../components/EventBacktest';
 import { ShockSimulator } from '../components/ShockSimulator';
+import { useMarketData } from '../contexts/MarketDataContext';
+import { formatLatestSnapshotValue, formatLatestSnapshotChange } from '../utils/formatters';
 import './Dashboard.css';
 
 export default function Dashboard() {
-  const { data, isLoading, error } = useDashboardOverview();
+  const { overview: data, isLoading, error } = useMarketData();
 
   if (isLoading) {
     return (
@@ -79,16 +80,34 @@ export default function Dashboard() {
               <div key={indicator.indicator_code} className="card indicator-card col-span-4">
                 <h3 className="indicator-name">{indicator.indicator_name}</h3>
                 <div className="indicator-value">
-                  {indicator.latest_value} <span className="unit">{indicator.unit}</span>
+                  {formatLatestSnapshotValue(indicator)} <span className="unit">{indicator.unit}</span>
                 </div>
-                {indicator.delta_pct && (
-                  <div className="indicator-footer">
-                    <span className="indicator-date">{new Date(indicator.as_of_date).toLocaleDateString('zh-CN')}</span>
-                    <div className={`indicator-change ${parseFloat(indicator.delta_pct) >= 0 ? 'positive' : 'negative'}`}>
-                      {parseFloat(indicator.delta_pct) >= 0 ? '↑' : '↓'} {Math.abs(parseFloat(indicator.delta_pct)).toFixed(2)}%
+                {(() => {
+                  const change = formatLatestSnapshotChange(indicator);
+                  if (!change) return null;
+
+                  const changeClass =
+                    change.direction === 'up'
+                      ? 'positive'
+                      : change.direction === 'down'
+                        ? 'negative'
+                        : 'neutral';
+                  const changeArrow =
+                    change.direction === 'up'
+                      ? '↑'
+                      : change.direction === 'down'
+                        ? '↓'
+                        : '→';
+
+                  return (
+                    <div className="indicator-footer">
+                      <span className="indicator-date">{new Date(indicator.as_of_date).toLocaleDateString('zh-CN')}</span>
+                      <div className={`indicator-change ${changeClass}`}>
+                        {changeArrow} {change.text}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             ))}
           </section>

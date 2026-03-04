@@ -77,6 +77,15 @@ async def get_event_impact(
     Returns:
         Event details and indicator impacts with before/after values and percentage changes
     """
+    def is_fixed_income_indicator(indicator_code: str) -> bool:
+        code = (indicator_code or "").upper()
+        return (
+            (code.startswith("US") and code.endswith("Y")) or
+            ("FEDFUNDS" in code) or
+            code.endswith("RATE") or
+            ("YIELD" in code)
+        )
+
     try:
         repo = PostgresRepository()
 
@@ -180,15 +189,23 @@ async def get_event_impact(
                 # Use the first observation after the event
                 after_value = float(after_obs[0][1])
 
-            if before_value is not None and after_value is not None and before_value != 0:
-                change_pct = ((after_value - before_value) / before_value) * 100
+            change_abs = None
+            change_bps = None
+            if before_value is not None and after_value is not None:
+                change_abs = after_value - before_value
+                if before_value != 0:
+                    change_pct = (change_abs / before_value) * 100
+                if is_fixed_income_indicator(code):
+                    change_bps = change_abs * 100
 
             indicators.append({
                 "indicator_code": code,
                 "indicator_name": indicator_name,
                 "before_value": before_value,
                 "after_value": after_value,
+                "change_abs": change_abs,
                 "change_pct": change_pct,
+                "change_bps": change_bps,
                 "observations": [
                     {
                         "observation_date": obs[0].isoformat() if obs[0] else None,

@@ -64,7 +64,9 @@ class SimulationService:
         shock_magnitude: float,
         target_indicator: str,
         affected_indicators: Optional[List[str]] = None,
-        window_days: int = 90
+        window_days: int = 90,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
     ) -> Dict[str, Any]:
         """
         Simulate economic shock and calculate impacts
@@ -75,6 +77,8 @@ class SimulationService:
             target_indicator: The indicator being shocked (e.g., 'US10Y', 'EURUSD', 'WTI')
             affected_indicators: List of indicators to analyze (optional)
             window_days: Historical window for correlation calculation
+            start_date: Optional start date for correlation window
+            end_date: Optional end date for correlation window
 
         Returns:
             Dict with shock details and impact predictions
@@ -82,12 +86,19 @@ class SimulationService:
         # Default affected indicators if not specified
         if not affected_indicators:
             affected_indicators = self._get_default_indicators(shock_type)
+        else:
+            affected_indicators = list(dict.fromkeys(affected_indicators))
 
-        # Get recent correlation matrix
-        end_date = date.today()
-        start_date = end_date - timedelta(days=window_days * 2)  # Use 2x window for better data
+        # Use the same default date behavior as correlation matrix endpoint.
+        if not end_date:
+            end_date = date.today()
+        if not start_date:
+            start_date = end_date - timedelta(days=365)
 
-        all_indicators = list(set([target_indicator] + affected_indicators))
+        all_indicators = []
+        for code in [target_indicator] + affected_indicators:
+            if code not in all_indicators:
+                all_indicators.append(code)
 
         try:
             corr_data = self.correlation_service.calculate_correlation_matrix(
@@ -109,6 +120,10 @@ class SimulationService:
         # Calculate impacts
         impacts = []
         for indicator in affected_indicators:
+            corr_value = corr_matrix.get(target_indicator, {}).get(indicator, 0)
+            if corr_value is None:
+                corr_value = 0
+
             if indicator == target_indicator:
                 # Direct impact on target
                 impact = self._calculate_direct_impact(
@@ -120,7 +135,7 @@ class SimulationService:
                 impact = self._calculate_indirect_impact(
                     shock_magnitude=shock_magnitude,
                     shock_type=shock_type,
-                    correlation=corr_matrix.get(target_indicator, {}).get(indicator, 0),
+                    correlation=corr_value,
                     target_category=self._get_indicator_category(target_indicator),
                     affected_category=self._get_indicator_category(indicator)
                 )
@@ -128,7 +143,7 @@ class SimulationService:
             impacts.append({
                 'indicator_code': indicator,
                 'indicator_name': self._get_indicator_name(indicator),
-                'correlation': corr_matrix.get(target_indicator, {}).get(indicator, 0),
+                'correlation': corr_value,
                 'predicted_change': impact['predicted_change'],
                 'confidence_lower': impact['confidence_lower'],
                 'confidence_upper': impact['confidence_upper'],

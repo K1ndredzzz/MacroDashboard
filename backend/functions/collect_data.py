@@ -20,6 +20,7 @@ import uuid
 
 from fred.extractor import FREDExtractor
 from fred.transformer import FREDTransformer
+from common.series_config import COLLECTOR_BASE_SERIES, build_fred_series
 
 # Configure logging
 logging.basicConfig(
@@ -27,25 +28,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-# FRED series to fetch
-FRED_SERIES = [
-    "DGS2",         # US 2Y Treasury
-    "DGS10",        # US 10Y Treasury
-    "FEDFUNDS",     # Federal Funds Rate
-    "DEXUSEU",      # EUR/USD
-    "DEXCHUS",      # USD/CNY
-    "DEXJPUS",      # USD/JPY
-    "DCOILWTICO",   # WTI Oil
-    "GOLDAMGBD228NLBM",  # Gold
-    "CPIAUCSL",     # CPI
-    "CPILFESL",     # Core CPI
-    "UNRATE",       # Unemployment Rate
-    "PAYEMS",       # Nonfarm Payrolls
-    "CIVPART",      # Labor Force Participation
-    "AHETPI"        # Average Hourly Earnings
-]
-
 
 def get_db_connection():
     """Get PostgreSQL connection from environment variables"""
@@ -142,19 +124,29 @@ def main():
     extractor = FREDExtractor(api_key=fred_api_key)
     transformer = FREDTransformer()
 
+    # Limit pull window to avoid oversized cron runs and API throttling.
+    lookback_days_raw = os.getenv("LOOKBACK_DAYS", "30")
+    try:
+        lookback_days = max(1, int(lookback_days_raw))
+    except ValueError:
+        logger.warning(f"Invalid LOOKBACK_DAYS={lookback_days_raw}, fallback to 30")
+        lookback_days = 30
+
     total_processed = 0
     total_inserted = 0
     errors = []
+    series_to_fetch = build_fred_series(COLLECTOR_BASE_SERIES, logger=logger)
+    logger.info(f"Collector series count: {len(series_to_fetch)}")
 
     # Fetch data for each series
-    for series_id in FRED_SERIES:
+    for series_id in series_to_fetch:
         try:
             logger.info(f"Fetching {series_id}...")
 
             # Extract raw data
             raw_data = extractor.fetch_series(
                 series_id=series_id,
-                start_date=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
+                start_date=(datetime.utcnow() - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
             )
 
             if not raw_data or 'observations' not in raw_data:
@@ -189,19 +181,24 @@ def main():
     status = "success" if not errors else "partial_success" if total_inserted > 0 else "failed"
     error_message = "; ".join(errors) if errors else None
 
-    log_etl_run(
-        conn=conn,
-        run_id=run_id,
-        source="fred",
-        status=status,
-        records_processed=total_processed,
-        records_inserted=total_inserted,
-        error_message=error_message
-    )
+    try:
+        log_etl_run(
+            conn=conn,
+            run_id=run_id,
+            source="fred",
+            status=status,
+            records_processed=total_processed,
+            records_inserted=total_inserted,
+            error_message=error_message
+        )
+    except Exception as e:
+        # ETL log write failures should not mark the whole cron run as failed.
+        logger.warning(f"Failed to write ETL run log: {e}")
 
     conn.close()
 
     logger.info(f"Data collection complete - Run ID: {run_id}")
+    logger.info(f"Lookback days: {lookback_days}")
     logger.info(f"Processed: {total_processed}, Inserted: {total_inserted}")
 
     # Return 0 for success or partial_success (most data collected successfully)

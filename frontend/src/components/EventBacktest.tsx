@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface Event {
@@ -15,7 +15,9 @@ interface IndicatorImpact {
   indicator_name: string;
   before_value: number | null;
   after_value: number | null;
+  change_abs?: number | null;
   change_pct: number | null;
+  change_bps?: number | null;
   observations: Array<{
     observation_date: string;
     value: string;
@@ -94,6 +96,34 @@ export const EventBacktest: React.FC = () => {
     fetchImpact();
   }, [selectedEvent]);
 
+  const trendChartData = useMemo(() => {
+    if (!impact) return [];
+
+    const byDate = new Map<string, Record<string, string | number>>();
+
+    impact.indicators.forEach((indicator) => {
+      const sortedObservations = [...indicator.observations].sort(
+        (a, b) => new Date(a.observation_date).getTime() - new Date(b.observation_date).getTime()
+      );
+
+      sortedObservations.forEach((obs) => {
+        if (!byDate.has(obs.observation_date)) {
+          byDate.set(obs.observation_date, { observation_date: obs.observation_date });
+        }
+
+        const numericValue = Number.parseFloat(obs.value);
+        if (!Number.isNaN(numericValue)) {
+          byDate.get(obs.observation_date)![indicator.indicator_code] = numericValue;
+        }
+      });
+    });
+
+    return Array.from(byDate.values()).sort(
+      (a, b) =>
+        new Date(String(a.observation_date)).getTime() - new Date(String(b.observation_date)).getTime()
+    );
+  }, [impact]);
+
   if (loading) {
     return <div className="event-backtest loading">加载中...</div>;
   }
@@ -121,6 +151,39 @@ export const EventBacktest: React.FC = () => {
       'currency': '货币事件'
     };
     return labels[type] || type;
+  };
+
+  const isFixedIncomeIndicator = (indicatorCode: string) => {
+    const code = indicatorCode.toUpperCase();
+    return (/^US\d+Y$/.test(code) || code.includes('FEDFUNDS') || code.endsWith('RATE') || code.includes('YIELD'));
+  };
+
+  const getChangeDisplay = (indicator: IndicatorImpact) => {
+    const { before_value: beforeValue, after_value: afterValue } = indicator;
+    if (beforeValue === null || afterValue === null) {
+      return null;
+    }
+
+    const deltaAbs = afterValue - beforeValue;
+
+    if (isFixedIncomeIndicator(indicator.indicator_code)) {
+      // Fixed-income yield change should be absolute bps, not relative percentage change.
+      const changeBps = indicator.change_bps ?? (deltaAbs * 100);
+      return {
+        isPositive: changeBps >= 0,
+        text: `${Math.abs(Math.round(changeBps))} bps`
+      };
+    }
+
+    const changePct = beforeValue !== 0 ? (deltaAbs / beforeValue) * 100 : indicator.change_pct;
+    if (changePct === null || Number.isNaN(changePct)) {
+      return null;
+    }
+
+    return {
+      isPositive: changePct >= 0,
+      text: `${Math.abs(changePct).toFixed(2)}%`
+    };
   };
 
   return (
@@ -169,38 +232,42 @@ export const EventBacktest: React.FC = () => {
           <div className="impact-summary">
             <h5>指标变化</h5>
             <div className="impact-cards">
-              {impact.indicators.map((indicator) => (
-                <div key={indicator.indicator_code} className="impact-card">
-                  <div className="indicator-name">{indicator.indicator_name}</div>
-                  <div className="values">
-                    <div className="value-item">
-                      <span className="label">事件前:</span>
-                      <span className="value">
-                        {indicator.before_value !== null ? indicator.before_value.toFixed(2) : '-'}
-                      </span>
+              {impact.indicators.map((indicator) => {
+                const changeDisplay = getChangeDisplay(indicator);
+
+                return (
+                  <div key={indicator.indicator_code} className="impact-card">
+                    <div className="indicator-name">{indicator.indicator_name}</div>
+                    <div className="values">
+                      <div className="value-item">
+                        <span className="label">事件前:</span>
+                        <span className="value">
+                          {indicator.before_value !== null ? indicator.before_value.toFixed(2) : '-'}
+                        </span>
+                      </div>
+                      <div className="value-item">
+                        <span className="label">事件后:</span>
+                        <span className="value">
+                          {indicator.after_value !== null ? indicator.after_value.toFixed(2) : '-'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="value-item">
-                      <span className="label">事件后:</span>
-                      <span className="value">
-                        {indicator.after_value !== null ? indicator.after_value.toFixed(2) : '-'}
-                      </span>
-                    </div>
+                    {changeDisplay && (
+                      <div className={`change ${changeDisplay.isPositive ? 'positive' : 'negative'}`}>
+                        {changeDisplay.isPositive ? '↑' : '↓'} {changeDisplay.text}
+                      </div>
+                    )}
                   </div>
-                  {indicator.change_pct !== null && (
-                    <div className={`change ${indicator.change_pct >= 0 ? 'positive' : 'negative'}`}>
-                      {indicator.change_pct >= 0 ? '↑' : '↓'} {Math.abs(indicator.change_pct).toFixed(2)}%
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          {impact.indicators.length > 0 && impact.indicators[0].observations.length > 0 && (
+          {trendChartData.length > 0 && (
             <div className="impact-chart">
               <h5>趋势图</h5>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart>
+                <LineChart data={trendChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                   <XAxis
                     dataKey="observation_date"
@@ -220,15 +287,10 @@ export const EventBacktest: React.FC = () => {
                   <Legend wrapperStyle={{ color: 'var(--text-primary)' }} />
                   {impact.indicators.map((indicator, idx) => {
                     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-                    const chartData = indicator.observations.map(obs => ({
-                      observation_date: obs.observation_date,
-                      [indicator.indicator_code]: parseFloat(obs.value)
-                    }));
 
                     return (
                       <Line
                         key={indicator.indicator_code}
-                        data={chartData}
                         type="monotone"
                         dataKey={indicator.indicator_code}
                         stroke={colors[idx % colors.length]}

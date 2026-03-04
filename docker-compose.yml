@@ -67,7 +67,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8020:8000" # 外部8020
+      - "9020:8000" # 外部8020
     healthcheck:
       test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')" ]
       interval: 30s
@@ -77,6 +77,9 @@ services:
 
   # Data Collection Cron Job
   data-collector:
+    build:
+      context: ./backend/functions
+      dockerfile: Dockerfile.collector
     image: fuzhouxing/macro-dashboard-collector:latest
     container_name: macro-collector
     restart: unless-stopped
@@ -88,7 +91,10 @@ services:
       POSTGRES_USER: macro_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       FRED_API_KEY: ${FRED_API_KEY}
-      CRON_SCHEDULE: "0 */6 * * *" # Every 6 hours
+      CRON_SCHEDULE: "${CRON_SCHEDULE:-0 */6 * * *}" # Every 6 hours by default
+      LOOKBACK_DAYS: "${LOOKBACK_DAYS:-30}"
+      SKIP_GOLD_SERIES: "${SKIP_GOLD_SERIES:-true}"
+      GOLD_SERIES_ID: "${GOLD_SERIES_ID:-GOLDPMGBD228NLBM}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -99,7 +105,7 @@ services:
     container_name: macro-frontend
     restart: unless-stopped
     ports:
-      - "8021:80" # 外部8021
+      - "9021:80" # 外部8021
     depends_on:
       - api
 

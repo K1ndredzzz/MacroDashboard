@@ -49,7 +49,9 @@ async def simulate_shock(request: ShockSimulationRequest):
             shock_magnitude=request.shock_magnitude,
             target_indicator=request.target_indicator,
             affected_indicators=request.affected_indicators,
-            window_days=request.window_days
+            window_days=request.window_days,
+            start_date=request.start_date,
+            end_date=request.end_date
         )
 
         return ShockSimulationResponse(**result)
